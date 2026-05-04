@@ -1,0 +1,210 @@
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-neutral-0);
+  margin-bottom: var(--space-8);
+}
+
+.loading {
+  color: var(--color-neutral-500);
+  padding: var(--space-8);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.order {
+  background: var(--color-neutral-900);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  gap: var(--space-4);
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.orderHeader:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.orderMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.orderId {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-neutral-100);
+}
+
+.orderDate {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500);
+}
+
+.typePills {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-700);
+  border-radius: var(--radius-full);
+  color: var(--color-neutral-400);
+}
+
+.orderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--color-neutral-500);
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+}
+
+.badge_pending { background: rgba(234,179,8,0.1); color: var(--color-warning-400); }
+.badge_paid { background: rgba(34,197,94,0.1); color: var(--color-success-400); }
+.badge_processing { background: rgba(59,130,246,0.1); color: var(--color-accent-400); }
+.badge_shipped { background: rgba(59,130,246,0.15); color: var(--color-accent-300); }
+.badge_delivered { background: rgba(34,197,94,0.15); color: var(--color-success-500); }
+.badge_cancelled { background: rgba(239,68,68,0.1); color: var(--color-error-400); }
+
+.amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-neutral-0);
+  font-family: var(--font-display);
+}
+
+.orderBody {
+  border-top: 1px solid var(--color-neutral-800);
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.itemImg {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-800);
+  flex-shrink: 0;
+}
+
+.itemName {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-neutral-200);
+}
+
+.itemMeta {
+  font-size: 0.75rem;
+  color: var(--color-neutral-500);
+}
+
+.itemPrice {
+  margin-left: auto;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-neutral-100);
+}
+
+/* Shipping */
+.shippingPanel {
+  background: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-700);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.shippingPanel h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-neutral-200);
+}
+
+.shippingControls {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.select {
+  padding: 8px 12px;
+  background: var(--color-neutral-700);
+  border: 1px solid var(--color-neutral-600);
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-100);
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.trackingInput {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  background: var(--color-neutral-700);
+  border: 1px solid var(--color-neutral-600);
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-100);
+  font-size: 0.875rem;
+}
+
+.trackingInput::placeholder {
+  color: var(--color-neutral-500);
+}
+
+.shipAddr {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-400);
+}

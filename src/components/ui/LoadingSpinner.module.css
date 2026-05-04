@@ -1,0 +1,17 @@
+.spinner {
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--color-accent-400);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.fullPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,198 @@
+.page {
+  padding-top: 88px;
+  padding-bottom: var(--space-20);
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-neutral-0);
+  padding: var(--space-8) 0 var(--space-6);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.section {
+  background: var(--color-neutral-900);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-neutral-200);
+  margin-bottom: var(--space-5);
+}
+
+.sectionHeader h2 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.addressList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.addressCard {
+  padding: var(--space-4);
+  background: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-700);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  cursor: pointer;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all var(--transition-fast);
+  font-size: 0.875rem;
+  color: var(--color-neutral-400);
+}
+
+.addressCard strong {
+  color: var(--color-neutral-200);
+  font-size: 0.9375rem;
+}
+
+.addressCard:hover {
+  border-color: var(--color-neutral-600);
+}
+
+.addressCardSelected {
+  border-color: var(--color-accent-500);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.addressForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.orderItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.itemImg {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-800);
+  flex-shrink: 0;
+}
+
+.itemName {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+  color: var(--color-neutral-200);
+}
+
+.itemQty {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500);
+}
+
+.itemTotal {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-neutral-100);
+  white-space: nowrap;
+}
+
+/* Summary */
+.summary {
+  background: var(--color-neutral-900);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  position: sticky;
+  top: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.summary h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-neutral-50);
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--color-neutral-400);
+}
+
+.tbd {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-600);
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-neutral-0);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-neutral-800);
+}
+
+.secureNote {
+  font-size: 0.75rem;
+  color: var(--color-neutral-600);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summary {
+    position: static;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
