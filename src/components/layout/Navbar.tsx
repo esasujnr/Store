@@ -23,7 +23,7 @@ const PRODUCT_CATEGORIES: ProductCategory[] = [
     description: 'Race-ready frames, airframes & complete builds engineered for FPV performance.',
     Icon: Plane,
     image:
-      'https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=600',
+      'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=600&q=80',
   },
   {
     label: 'Electronics',

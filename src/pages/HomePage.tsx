@@ -20,7 +20,7 @@ export default function HomePage() {
       price: 45.99,
       fulfillment_type: 'composite' as const,
       category_id: 'drone-frames',
-      image_url: 'https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=400',
+      image_url: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=400&q=80',
       stl_file_path: '',
       stock_count: 50,
       is_active: true,
@@ -41,7 +41,7 @@ export default function HomePage() {
       price: 29.99,
       fulfillment_type: 'composite' as const,
       category_id: 'motors',
-      image_url: 'https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=400',
+      image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=400&q=80',
       stl_file_path: '',
       stock_count: 100,
       is_active: true,
@@ -62,7 +62,7 @@ export default function HomePage() {
       price: 12.99,
       fulfillment_type: 'composite' as const,
       category_id: 'propellers',
-      image_url: 'https://images.pexels.com/photos/2876034/pexels-photo-2876034.jpeg?auto=compress&cs=tinysrgb&w=400',
+      image_url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80',
       stl_file_path: '',
       stock_count: 200,
       is_active: true,
@@ -83,7 +83,7 @@ export default function HomePage() {
       price: 19.99,
       fulfillment_type: 'composite' as const,
       category_id: 'escs',
-      image_url: 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=400',
+      image_url: 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?auto=format&fit=crop&w=400&q=80',
       stl_file_path: '',
       stock_count: 75,
       is_active: true,
@@ -112,7 +112,7 @@ export default function HomePage() {
       <section className={styles.hero}>
         <div className={styles.heroBg}>
           <img
-            src="https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=1600"
+            src="https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1600&q=80"
             alt="Drone in flight"
             className={styles.heroBgImg}
           />
@@ -300,7 +300,7 @@ export default function HomePage() {
             </div>
             <div className={styles.processImage}>
               <img
-                src="https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=600"
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80"
                 alt="Engineering process"
               />
             </div>
@@ -329,7 +329,7 @@ export default function HomePage() {
             </div>
             <div className={styles.biomimicryImage}>
               <img
-                src="https://images.pexels.com/photos/2876034/pexels-photo-2876034.jpeg?auto=compress&cs=tinysrgb&w=600"
+                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80"
                 alt="Biomimicry inspired design"
               />
             </div>
@@ -343,7 +343,7 @@ export default function HomePage() {
           <div className={styles.engineeringSection}>
             <div className={styles.engineeringImage}>
               <img
-                src="https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=600"
+                src="https://images.unsplash.com/photo-1587293852726-70cdb56c2866?auto=format&fit=crop&w=600&q=80"
                 alt="Engineering analysis"
               />
             </div>
@@ -389,7 +389,7 @@ export default function HomePage() {
             </div>
             <div className={styles.costImage}>
               <img
-                src="https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=600"
+                src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=600&q=80"
                 alt="Cost effective manufacturing"
               />
             </div>
@@ -403,7 +403,7 @@ export default function HomePage() {
           <div className={styles.crashSection}>
             <div className={styles.crashImage}>
               <img
-                src="https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=600"
+                src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=600&q=80"
                 alt="Drone crash recovery"
               />
             </div>
@@ -563,7 +563,7 @@ export default function HomePage() {
             </div>
             <div className={styles.communityImage}>
               <img
-                src="https://images.pexels.com/photos/3184430/pexels-photo-3184430.jpeg?auto=compress&cs=tinysrgb&w=600"
+                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"
                 alt="Community of drone builders"
               />
             </div>
