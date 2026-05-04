@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Download, Package, Cpu, Shield, Zap } from 'lucide-react'
+import { ArrowRight, Download, Package, Cpu, Shield, Zap, DollarSign, Wrench, Target, Recycle, Mail, User, BookOpen, Users, Video } from 'lucide-react'
 import SEO from '@/components/SEO'
 import ProductCard from '@/components/products/ProductCard'
 import { useProducts, useCategories } from '@/hooks/useProducts'
@@ -9,7 +9,96 @@ import styles from './HomePage.module.css'
 export default function HomePage() {
   const { data: products } = useProducts()
   const { data: categories } = useCategories()
-  const featured = products?.slice(0, 4) ?? []
+
+  // Fallback products if Supabase not connected
+  const fallbackProducts = [
+    {
+      id: '1',
+      name: '5" FPV Drone Frame',
+      slug: '5-inch-fpv-drone-frame',
+      description: 'High-performance carbon fiber drone frame for FPV racing',
+      price: 45.99,
+      fulfillment_type: 'composite' as const,
+      category_id: 'drone-frames',
+      image_url: 'https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=400',
+      stl_file_path: '',
+      stock_count: 50,
+      is_active: true,
+      weight_grams: 150,
+      is_drone_product: true,
+      is_recommended_electronic: false,
+      tags: ['fpv', 'racing', 'carbon'],
+      specs: { size: '5 inch', material: 'carbon fiber' } as Record<string, string | number>,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+      category: { id: '1', name: 'Drone Frames', slug: 'drone-frames', description: '', created_at: '2024-01-01T00:00:00Z' },
+    },
+    {
+      id: '2',
+      name: '2207 Brushless Motor',
+      slug: '2207-brushless-motor',
+      description: 'High-torque brushless motor for quadcopters',
+      price: 29.99,
+      fulfillment_type: 'composite' as const,
+      category_id: 'motors',
+      image_url: 'https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=400',
+      stl_file_path: '',
+      stock_count: 100,
+      is_active: true,
+      weight_grams: 45,
+      is_drone_product: false,
+      is_recommended_electronic: true,
+      tags: ['motor', 'brushless', '2207'],
+      specs: { kv: 2300, max_current: '30A' } as Record<string, string | number>,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+      category: { id: '2', name: 'Motors', slug: 'motors', description: '', created_at: '2024-01-01T00:00:00Z' },
+    },
+    {
+      id: '3',
+      name: 'Carbon Fiber Propellers (5x4.5)',
+      slug: 'carbon-fiber-propellers',
+      description: 'Lightweight carbon fiber propellers for maximum efficiency',
+      price: 12.99,
+      fulfillment_type: 'composite' as const,
+      category_id: 'propellers',
+      image_url: 'https://images.pexels.com/photos/2876034/pexels-photo-2876034.jpeg?auto=compress&cs=tinysrgb&w=400',
+      stl_file_path: '',
+      stock_count: 200,
+      is_active: true,
+      weight_grams: 25,
+      is_drone_product: false,
+      is_recommended_electronic: false,
+      tags: ['propeller', 'carbon', '5x4.5'],
+      specs: { size: '5x4.5', material: 'carbon fiber' } as Record<string, string | number>,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+      category: { id: '3', name: 'Propellers', slug: 'propellers', description: '', created_at: '2024-01-01T00:00:00Z' },
+    },
+    {
+      id: '4',
+      name: '30A ESC with BEC',
+      slug: '30a-esc-with-bec',
+      description: '30A Electronic Speed Controller with Battery Eliminator Circuit',
+      price: 19.99,
+      fulfillment_type: 'composite' as const,
+      category_id: 'escs',
+      image_url: 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=400',
+      stl_file_path: '',
+      stock_count: 75,
+      is_active: true,
+      weight_grams: 35,
+      is_drone_product: false,
+      is_recommended_electronic: true,
+      tags: ['esc', '30a', 'bec'],
+      specs: { current: '30A', bec: '5V/2A' } as Record<string, string | number>,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+      category: { id: '4', name: 'ESCs', slug: 'escs', description: '', created_at: '2024-01-01T00:00:00Z' },
+    }
+  ]
+
+  const featured = products?.length ? products.slice(0, 4) : fallbackProducts.slice(0, 4)
 
   return (
     <>
@@ -178,6 +267,360 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+      {/* Process */}
+      <section className={styles.section}>
+        <div className="container">
+          <div className={styles.processSection}>
+            <div className={styles.processContent}>
+              <h2>The VOLANT Process</h2>
+              <p>
+                From digital design to flight-ready drone, our engineering process ensures every component
+                meets the highest standards of performance and reliability.
+              </p>
+              <div className={styles.processSteps}>
+                <div className={styles.processStep}>
+                  <div className={styles.stepNumber}>1</div>
+                  <h3>Design & Simulation</h3>
+                  <p>Advanced CAD modeling with FEA analysis for optimal performance</p>
+                </div>
+                <div className={styles.processStep}>
+                  <div className={styles.stepNumber}>2</div>
+                  <h3>Precision Manufacturing</h3>
+                  <p>FDM printing, MJF technology, and carbon fiber composites</p>
+                </div>
+                <div className={styles.processStep}>
+                  <div className={styles.stepNumber}>3</div>
+                  <h3>Quality Testing</h3>
+                  <p>Rigorous testing ensures flight-ready reliability</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.processImage}>
+              <img
+                src="https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Engineering process"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Biomimicry Design */}
+      <section className={styles.section}>
+        <div className="container">
+          <div className={styles.biomimicrySection}>
+            <div className={styles.biomimicryContent}>
+              <h2>Learning from Nature</h2>
+              <p>
+                We are totally aware about the design freedom that 3D printing technology gives us,
+                but this freedom should be used in a clever way otherwise you are not taking advantage
+                of this incredible way to manufacture things!
+              </p>
+              <p>
+                We are convinced that biomimicry is a great approach to take advantage of this freedom
+                in order to develop low-weight, strong and efficient drones.
+              </p>
+              <Link to="/shop" className={styles.ctaSecondary}>
+                Explore Designs <ArrowRight size={16} />
+              </Link>
+            </div>
+            <div className={styles.biomimicryImage}>
+              <img
+                src="https://images.pexels.com/photos/2876034/pexels-photo-2876034.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Biomimicry inspired design"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Engineering Approach */}
+      <section className={styles.section}>
+        <div className="container">
+          <div className={styles.engineeringSection}>
+            <div className={styles.engineeringImage}>
+              <img
+                src="https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Engineering analysis"
+              />
+            </div>
+            <div className={styles.engineeringContent}>
+              <h2>Engineering Projects</h2>
+              <p>
+                Physics and aerodynamics affect in the same way a commercial aircraft than a small drone.
+                That is why we take each component project as an engineering project.
+              </p>
+              <p>
+                Stress analysis to ensure acceptable strength and aerodynamics analysis to ensure
+                stability and efficiency are just two of many examples.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Cost Benefits */}
+      <section className={styles.section}>
+        <div className="container">
+          <div className={styles.costSection}>
+            <div className={styles.costContent}>
+              <h2>Cost Effective Innovation</h2>
+              <p>
+                3D printing technology allows us to manufacture complex geometries that would be
+                impossible or prohibitively expensive with traditional methods.
+              </p>
+              <div className={styles.costBenefits}>
+                <div className={styles.costBenefit}>
+                  <DollarSign size={20} />
+                  <span>Lower Production Costs</span>
+                </div>
+                <div className={styles.costBenefit}>
+                  <Zap size={20} />
+                  <span>Rapid Prototyping</span>
+                </div>
+                <div className={styles.costBenefit}>
+                  <Wrench size={20} />
+                  <span>Custom Modifications</span>
+                </div>
+              </div>
+            </div>
+            <div className={styles.costImage}>
+              <img
+                src="https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Cost effective manufacturing"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Crash and Reprint */}
+      <section className={styles.section}>
+        <div className="container">
+          <div className={styles.crashSection}>
+            <div className={styles.crashImage}>
+              <img
+                src="https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Drone crash recovery"
+              />
+            </div>
+            <div className={styles.crashContent}>
+              <h2>You Crash It You Print It Again</h2>
+              <p>
+                Crashing is part of this hobby, but now you have a factory at home! The great advantage
+                of a 3D printed drone is that in case you crash it you can print the damaged parts again,
+                which saves a lot of money!
+              </p>
+              <p>
+                The electronic elements which are more expensive rarely suffer damage during a crash.
+                Critical parts are designed to be detachable allowing you to replace them easily.
+              </p>
+              <div className={styles.crashBenefits}>
+                <div className={styles.crashBenefit}>
+                  <Recycle size={20} />
+                  <span>Print Replacement Parts</span>
+                </div>
+                <div className={styles.crashBenefit}>
+                  <Target size={20} />
+                  <span>Modular Design</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter */}
+      <section className={styles.newsletterSection}>
+        <div className="container">
+          <div className={styles.newsletterContent}>
+            <Mail size={48} className={styles.newsletterIcon} />
+            <h2>Stay Updated</h2>
+            <p>
+              Get notified about new products, exclusive discounts, and the latest in drone technology.
+              Join our community of builders and engineers.
+            </p>
+            <div className={styles.newsletterForm}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className={styles.newsletterInput}
+              />
+              <button className={styles.newsletterButton}>
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className={styles.testimonialsSection}>
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2>What Our Community Says</h2>
+            <p>Join thousands of satisfied builders</p>
+          </div>
+          <div className={styles.testimonialsGrid}>
+            <div className={styles.testimonialCard}>
+              <div className={styles.testimonialStars}>
+                ★★★★★
+              </div>
+              <p className={styles.testimonialText}>
+                "The quality of these 3D printed drones is incredible. I've built three now and each one flies better than the last. The modular design makes repairs so easy!"
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <div className={styles.testimonialAvatar}>
+                  <User size={24} />
+                </div>
+                <div>
+                  <div className={styles.testimonialName}>Alex Chen</div>
+                  <div className={styles.testimonialTitle}>FPV Enthusiast</div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.testimonialCard}>
+              <div className={styles.testimonialStars}>
+                ★★★★★
+              </div>
+              <p className={styles.testimonialText}>
+                "As an engineering student, I love how these drones teach real-world aerodynamics and design principles. The biomimicry approach is brilliant."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <div className={styles.testimonialAvatar}>
+                  <User size={24} />
+                </div>
+                <div>
+                  <div className={styles.testimonialName}>Sarah Martinez</div>
+                  <div className={styles.testimonialTitle}>Engineering Student</div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.testimonialCard}>
+              <div className={styles.testimonialStars}>
+                ★★★★★
+              </div>
+              <p className={styles.testimonialText}>
+                "Started with a basic printer and built my first drone. Now I have a whole fleet! The community support and documentation are outstanding."
+              </p>
+              <div className={styles.testimonialAuthor}>
+                <div className={styles.testimonialAvatar}>
+                  <User size={24} />
+                </div>
+                <div>
+                  <div className={styles.testimonialName}>Mike Johnson</div>
+                  <div className={styles.testimonialTitle}>3D Printing Hobbyists</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Community Features */}
+      <section className={styles.communitySection}>
+        <div className="container">
+          <div className={styles.communityContent}>
+            <div className={styles.communityText}>
+              <h2>Join Our Growing Community</h2>
+              <p>
+                Connect with fellow builders, share your builds, and get expert advice from our community of engineers and hobbyists.
+              </p>
+              <div className={styles.communityFeatures}>
+                <div className={styles.communityFeature}>
+                  <BookOpen size={24} className={styles.communityIcon} />
+                  <div>
+                    <h3>Expert Guides</h3>
+                    <p>Step-by-step build guides and tutorials</p>
+                  </div>
+                </div>
+                <div className={styles.communityFeature}>
+                  <Users size={24} className={styles.communityIcon} />
+                  <div>
+                    <h3>Community Support</h3>
+                    <p>Get help from experienced builders</p>
+                  </div>
+                </div>
+                <div className={styles.communityFeature}>
+                  <Video size={24} className={styles.communityIcon} />
+                  <div>
+                    <h3>Fan Videos</h3>
+                    <p>Inspiration from our community builds</p>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.communityActions}>
+                <Link to="/shop" className={styles.ctaPrimary}>
+                  Start Building <ArrowRight size={16} />
+                </Link>
+                <a href="#newsletter" className={styles.ctaSecondary}>
+                  Join Newsletter
+                </a>
+              </div>
+            </div>
+            <div className={styles.communityImage}>
+              <img
+                src="https://images.pexels.com/photos/3184430/pexels-photo-3184430.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Community of drone builders"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className={styles.faqSection}>
+        <div className="container">
+          <div className={styles.sectionHeader}>
+            <h2>Frequently Asked Questions</h2>
+            <p>Everything you need to know about 3D printed drones</p>
+          </div>
+          <div className={styles.faqGrid}>
+            <div className={styles.faqItem}>
+              <h3>Do I need an expensive 3D printer?</h3>
+              <p>
+                No! Our designs work with budget printers like the Ender 3. We optimize for reliable printing
+                on affordable machines while maintaining flight performance.
+              </p>
+            </div>
+            <div className={styles.faqItem}>
+              <h3>How long does it take to build a drone?</h3>
+              <p>
+                A complete build typically takes 4-8 hours of printing time plus 2-3 hours for assembly.
+                Most builders complete their first drone within a weekend.
+              </p>
+            </div>
+            <div className={styles.faqItem}>
+              <h3>What if I crash my drone?</h3>
+              <p>
+                That's part of the hobby! Our modular design makes it easy to print replacement parts.
+                Most crashes only damage inexpensive plastic components, not electronics.
+              </p>
+            </div>
+            <div className={styles.faqItem}>
+              <h3>Do you provide build instructions?</h3>
+              <p>
+                Yes! Every product includes detailed PDF guides, video tutorials, and access to our
+                community forum for additional support and tips.
+              </p>
+            </div>
+            <div className={styles.faqItem}>
+              <h3>Can I modify the designs?</h3>
+              <p>
+                Absolutely! Our open-source approach encourages customization. Many builders create
+                unique variants and share them with the community.
+              </p>
+            </div>
+            <div className={styles.faqItem}>
+              <h3>What's the flight time like?</h3>
+              <p>
+                Flight times vary by model and setup, typically 5-15 minutes. Our efficient designs
+                maximize flight time while maintaining stability and performance.
+              </p>
+            </div>
           </div>
         </div>
       </section>
