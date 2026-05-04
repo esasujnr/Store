@@ -1,0 +1,535 @@
+diff --git a/src/components/layout/Navbar.module.css b/src/components/layout/Navbar.module.css
+index 3c5ba4e..cd8e7d2 100644
+--- a/src/components/layout/Navbar.module.css
++++ b/src/components/layout/Navbar.module.css
+@@ -241,3 +241,273 @@
+     display: none;
+   }
+ }
++
++/* ============================================================
++   Products mega menu (added)
++   ============================================================ */
++.megaWrap {
++  position: relative;
++}
++
++.megaTrigger {
++  display: inline-flex;
++  align-items: center;
++  gap: 4px;
++  background: transparent;
++  border: none;
++  cursor: pointer;
++  font: inherit;
++}
++
++.megaChevron {
++  transition: transform var(--transition-fast);
++  opacity: 0.8;
++}
++.megaChevronOpen {
++  transform: rotate(180deg);
++  opacity: 1;
++}
++
++.megaPanel {
++  position: absolute;
++  top: calc(100% + 12px);
++  left: 50%;
++  transform: translateX(-50%);
++  width: min(880px, calc(100vw - 32px));
++  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(7, 12, 24, 0.98));
++  border: 1px solid rgba(255, 255, 255, 0.08);
++  border-radius: var(--radius-xl, 16px);
++  box-shadow:
++    0 20px 60px -10px rgba(0, 0, 0, 0.6),
++    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
++  backdrop-filter: blur(18px);
++  -webkit-backdrop-filter: blur(18px);
++  padding: 0;
++  z-index: 110;
++  animation: megaFade 180ms ease-out;
++}
++
++@keyframes megaFade {
++  from { opacity: 0; transform: translate(-50%, -6px); }
++  to   { opacity: 1; transform: translate(-50%, 0); }
++}
++
++.megaInner {
++  padding: var(--space-5, 20px);
++}
++
++.megaHeader {
++  display: flex;
++  align-items: flex-end;
++  justify-content: space-between;
++  gap: var(--space-4, 16px);
++  margin-bottom: var(--space-4, 16px);
++  padding: 0 var(--space-2, 8px);
++}
++
++.megaEyebrow {
++  font-size: 0.7rem;
++  font-weight: 600;
++  letter-spacing: 0.14em;
++  text-transform: uppercase;
++  color: var(--color-accent-400);
++  margin-bottom: 4px;
++}
++
++.megaTitle {
++  font-size: 1.05rem;
++  font-weight: 600;
++  color: var(--color-neutral-0, #fff);
++  margin: 0;
++}
++
++.megaAllLink {
++  display: inline-flex;
++  align-items: center;
++  gap: 6px;
++  font-size: 0.8rem;
++  font-weight: 500;
++  color: var(--color-neutral-300, #cbd5e1);
++  padding: 6px 10px;
++  border-radius: var(--radius-md, 8px);
++  transition: color var(--transition-fast), background var(--transition-fast);
++}
++.megaAllLink:hover {
++  color: var(--color-neutral-0, #fff);
++  background: rgba(255, 255, 255, 0.06);
++}
++
++.megaGrid {
++  display: grid;
++  grid-template-columns: repeat(3, 1fr);
++  gap: var(--space-3, 12px);
++}
++
++.megaCard {
++  position: relative;
++  display: flex;
++  flex-direction: column;
++  border-radius: var(--radius-lg, 12px);
++  overflow: hidden;
++  background: rgba(255, 255, 255, 0.02);
++  border: 1px solid rgba(255, 255, 255, 0.06);
++  transition: transform 220ms ease, border-color 220ms ease, background 220ms ease;
++  text-decoration: none;
++  color: inherit;
++}
++
++.megaCard:hover {
++  transform: translateY(-2px);
++  border-color: rgba(96, 165, 250, 0.45);
++  background: rgba(59, 130, 246, 0.06);
++}
++
++.megaImageWrap {
++  position: relative;
++  aspect-ratio: 16 / 10;
++  overflow: hidden;
++}
++
++.megaImageWrap img {
++  width: 100%;
++  height: 100%;
++  object-fit: cover;
++  transition: transform 500ms ease;
++}
++
++.megaCard:hover .megaImageWrap img {
++  transform: scale(1.06);
++}
++
++.megaImageOverlay {
++  position: absolute;
++  inset: 0;
++  background: linear-gradient(180deg, rgba(7, 12, 24, 0) 40%, rgba(7, 12, 24, 0.85) 100%);
++}
++
++.megaIconBadge {
++  position: absolute;
++  top: 10px;
++  left: 10px;
++  width: 30px;
++  height: 30px;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  border-radius: 8px;
++  background: rgba(15, 23, 42, 0.7);
++  backdrop-filter: blur(8px);
++  -webkit-backdrop-filter: blur(8px);
++  color: var(--color-accent-300, #93c5fd);
++  border: 1px solid rgba(255, 255, 255, 0.08);
++}
++
++.megaCardBody {
++  padding: var(--space-3, 12px) var(--space-3, 12px) var(--space-4, 16px);
++}
++
++.megaCardTitleRow {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  margin-bottom: 4px;
++}
++
++.megaCardTitle {
++  font-size: 0.95rem;
++  font-weight: 600;
++  color: var(--color-neutral-0, #fff);
++  letter-spacing: 0.01em;
++}
++
++.megaCardArrow {
++  color: var(--color-neutral-400, #94a3b8);
++  transform: translateX(-4px);
++  opacity: 0;
++  transition: transform 220ms ease, opacity 220ms ease, color 220ms ease;
++}
++.megaCard:hover .megaCardArrow {
++  transform: translateX(0);
++  opacity: 1;
++  color: var(--color-accent-400, #60a5fa);
++}
++
++.megaCardDesc {
++  font-size: 0.8rem;
++  line-height: 1.45;
++  color: var(--color-neutral-400, #94a3b8);
++  margin: 0;
++}
++
++/* Mobile submenu */
++.mobileProductsTrigger {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  width: 100%;
++  background: transparent;
++  border: none;
++  cursor: pointer;
++  font: inherit;
++  text-align: left;
++}
++
++.mobileSubmenu {
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++  padding: 4px 0 8px var(--space-3, 12px);
++  border-left: 1px solid rgba(255, 255, 255, 0.08);
++  margin-left: var(--space-2, 8px);
++}
++
++.mobileSubLink {
++  display: flex;
++  align-items: flex-start;
++  gap: 10px;
++  padding: 10px 12px;
++  border-radius: var(--radius-md, 8px);
++  text-decoration: none;
++  transition: background var(--transition-fast);
++}
++.mobileSubLink:hover {
++  background: rgba(255, 255, 255, 0.04);
++}
++
++.mobileSubIcon {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  width: 28px;
++  height: 28px;
++  flex-shrink: 0;
++  border-radius: 8px;
++  background: rgba(59, 130, 246, 0.12);
++  color: var(--color-accent-300, #93c5fd);
++  margin-top: 2px;
++}
++
++.mobileSubLabel {
++  display: block;
++  font-size: 0.9rem;
++  font-weight: 600;
++  color: var(--color-neutral-0, #fff);
++}
++
++.mobileSubDesc {
++  display: block;
++  font-size: 0.75rem;
++  line-height: 1.4;
++  color: var(--color-neutral-400, #94a3b8);
++  margin-top: 2px;
++}
++
++/* Responsive */
++@media (max-width: 960px) {
++  .megaPanel { width: min(720px, calc(100vw - 24px)); }
++  .megaGrid { grid-template-columns: repeat(3, 1fr); }
++}
++
++@media (max-width: 768px) {
++  .megaWrap { display: none; }
++}
+diff --git a/src/components/layout/Navbar.tsx b/src/components/layout/Navbar.tsx
+index de367a1..4b0719d 100644
+--- a/src/components/layout/Navbar.tsx
++++ b/src/components/layout/Navbar.tsx
+@@ -1,17 +1,49 @@
+-import { useState, useEffect } from 'react'
++import { useState, useEffect, useRef } from 'react'
+ import { Link, NavLink, useNavigate } from 'react-router-dom'
+-import { ShoppingCart, User, Menu, X, ChevronDown, Package, LogOut, Settings, LayoutDashboard } from 'lucide-react'
++import {
++  ShoppingCart, User, Menu, X, ChevronDown, Package, LogOut, Settings,
++  LayoutDashboard, Plane, Cpu, Layers, ArrowRight,
++} from 'lucide-react'
+ import { useAuth } from '@/contexts/AuthContext'
+ import { useCart } from '@/contexts/CartContext'
+ import styles from './Navbar.module.css'
+ 
+-const NAV_LINKS = [
+-  { label: 'Shop', href: '/shop' },
+-  { label: 'Drones', href: '/shop/drone-frames' },
+-  { label: 'Electronics', href: '/shop/motors' },
+-  { label: 'Carbon Fiber', href: '/shop/carbon-fiber-parts' },
++type ProductCategory = {
++  label: string
++  href: string
++  description: string
++  Icon: typeof Plane
++  image: string
++}
++
++const PRODUCT_CATEGORIES: ProductCategory[] = [
++  {
++    label: 'Drones',
++    href: '/shop/drone-frames',
++    description: 'Race-ready frames, airframes & complete builds engineered for FPV performance.',
++    Icon: Plane,
++    image:
++      'https://images.pexels.com/photos/442589/pexels-photo-442589.jpeg?auto=compress&cs=tinysrgb&w=600',
++  },
++  {
++    label: 'Electronics',
++    href: '/shop/motors',
++    description: 'Motors, ESCs, flight controllers and wiring — the brains and muscle of every build.',
++    Icon: Cpu,
++    image:
++      'https://images.pexels.com/photos/1438081/pexels-photo-1438081.jpeg?auto=compress&cs=tinysrgb&w=600',
++  },
++  {
++    label: 'Carbon Fiber',
++    href: '/shop/carbon-fiber-parts',
++    description: 'Precision-cut carbon plates, arms and accessories. Lightweight. Stiff. Relentless.',
++    Icon: Layers,
++    image:
++      'https://images.pexels.com/photos/2876034/pexels-photo-2876034.jpeg?auto=compress&cs=tinysrgb&w=600',
++  },
+ ]
+ 
++
+ export default function Navbar() {
+   const { user, profile, isAdmin, signOut } = useAuth()
+   const { totalItems } = useCart()
+@@ -19,6 +51,9 @@ export default function Navbar() {
+   const [scrolled, setScrolled] = useState(false)
+   const [menuOpen, setMenuOpen] = useState(false)
+   const [userMenuOpen, setUserMenuOpen] = useState(false)
++  const [productsOpen, setProductsOpen] = useState(false)
++  const [mobileProductsOpen, setMobileProductsOpen] = useState(false)
++  const closeTimer = useRef<number | null>(null)
+ 
+   useEffect(() => {
+     const handler = () => setScrolled(window.scrollY > 20)
+@@ -26,6 +61,31 @@ export default function Navbar() {
+     return () => window.removeEventListener('scroll', handler)
+   }, [])
+ 
++  // Close on Escape
++  useEffect(() => {
++    const onKey = (e: KeyboardEvent) => {
++      if (e.key === 'Escape') {
++        setProductsOpen(false)
++        setUserMenuOpen(false)
++      }
++    }
++    window.addEventListener('keydown', onKey)
++    return () => window.removeEventListener('keydown', onKey)
++  }, [])
++
++  function openProducts() {
++    if (closeTimer.current) {
++      window.clearTimeout(closeTimer.current)
++      closeTimer.current = null
++    }
++    setProductsOpen(true)
++  }
++
++  function closeProductsSoon() {
++    if (closeTimer.current) window.clearTimeout(closeTimer.current)
++    closeTimer.current = window.setTimeout(() => setProductsOpen(false), 120)
++  }
++
+   async function handleSignOut() {
+     await signOut()
+     navigate('/')
+@@ -33,7 +93,7 @@ export default function Navbar() {
+   }
+ 
+   return (
+-    <header className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
++    <header className={`${styles.navbar} ${scrolled || productsOpen ? styles.scrolled : ''}`}>
+       <div className="container">
+         <div className={styles.inner}>
+           {/* Logo */}
+@@ -43,18 +103,71 @@ export default function Navbar() {
+           </Link>
+ 
+           {/* Desktop nav */}
+-          <nav className={styles.desktopNav}>
+-            {NAV_LINKS.map(link => (
+-              <NavLink
+-                key={link.href}
+-                to={link.href}
+-                className={({ isActive }) =>
+-                  `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
+-                }
++          <nav className={styles.desktopNav} aria-label="Primary">
++
++            {/* Products mega menu trigger */}
++            <div
++              className={styles.megaWrap}
++              onMouseEnter={openProducts}
++              onMouseLeave={closeProductsSoon}
++            >
++              <button
++                type="button"
++                className={`${styles.navLink} ${styles.megaTrigger} ${productsOpen ? styles.navLinkActive : ''}`}
++                aria-expanded={productsOpen}
++                aria-haspopup="true"
++                onClick={() => setProductsOpen(v => !v)}
+               >
+-                {link.label}
+-              </NavLink>
+-            ))}
++                Products
++                <ChevronDown
++                  size={14}
++                  className={`${styles.megaChevron} ${productsOpen ? styles.megaChevronOpen : ''}`}
++                />
++              </button>
++
++              {productsOpen && (
++                <div className={styles.megaPanel} role="menu">
++                  <div className={styles.megaInner}>
++                    <div className={styles.megaHeader}>
++                      <div>
++                        <div className={styles.megaEyebrow}>Catalog</div>
++                        <h3 className={styles.megaTitle}>Explore the full lineup</h3>
++                      </div>
++                    </div>
++
++                    <div className={styles.megaGrid}>
++                      {PRODUCT_CATEGORIES.map(cat => {
++                        const Icon = cat.Icon
++                        return (
++                          <Link
++                            key={cat.href}
++                            to={cat.href}
++                            className={styles.megaCard}
++                            onClick={() => setProductsOpen(false)}
++                            role="menuitem"
++                          >
++                            <div className={styles.megaImageWrap}>
++                              <img src={cat.image} alt="" loading="lazy" />
++                              <div className={styles.megaImageOverlay} />
++                              <div className={styles.megaIconBadge}>
++                                <Icon size={16} />
++                              </div>
++                            </div>
++                            <div className={styles.megaCardBody}>
++                              <div className={styles.megaCardTitleRow}>
++                                <span className={styles.megaCardTitle}>{cat.label}</span>
++                                <ArrowRight size={14} className={styles.megaCardArrow} />
++                              </div>
++                              <p className={styles.megaCardDesc}>{cat.description}</p>
++                            </div>
++                          </Link>
++                        )
++                      })}
++                    </div>
++                  </div>
++                </div>
++              )}
++            </div>
+           </nav>
+ 
+           {/* Actions */}
+@@ -129,19 +242,48 @@ export default function Navbar() {
+ 
+         {/* Mobile menu */}
+         {menuOpen && (
+-          <nav className={styles.mobileMenu}>
+-            {NAV_LINKS.map(link => (
+-              <NavLink
+-                key={link.href}
+-                to={link.href}
+-                className={({ isActive }) =>
+-                  `${styles.mobileLink} ${isActive ? styles.mobileLinkActive : ''}`
+-                }
+-                onClick={() => setMenuOpen(false)}
+-              >
+-                {link.label}
+-              </NavLink>
+-            ))}
++          <nav className={styles.mobileMenu} aria-label="Mobile">
++
++            {/* Mobile Products collapsible */}
++            <button
++              type="button"
++              className={`${styles.mobileLink} ${styles.mobileProductsTrigger}`}
++              aria-expanded={mobileProductsOpen}
++              onClick={() => setMobileProductsOpen(v => !v)}
++            >
++              <span>Products</span>
++              <ChevronDown
++                size={16}
++                className={mobileProductsOpen ? styles.megaChevronOpen : ''}
++              />
++            </button>
++            {mobileProductsOpen && (
++              <div className={styles.mobileSubmenu}>
++                {PRODUCT_CATEGORIES.map(cat => {
++                  const Icon = cat.Icon
++                  return (
++                    <Link
++                      key={cat.href}
++                      to={cat.href}
++                      className={styles.mobileSubLink}
++                      onClick={() => {
++                        setMenuOpen(false)
++                        setMobileProductsOpen(false)
++                      }}
++                    >
++                      <span className={styles.mobileSubIcon}>
++                        <Icon size={15} />
++                      </span>
++                      <span>
++                        <span className={styles.mobileSubLabel}>{cat.label}</span>
++                        <span className={styles.mobileSubDesc}>{cat.description}</span>
++                      </span>
++                    </Link>
++                  )
++                })}
++              </div>
++            )}
++
+             {!user && (
+               <Link to="/login" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>
+                 Sign In

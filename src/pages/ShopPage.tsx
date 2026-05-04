@@ -22,7 +22,21 @@ export default function ShopPage() {
   const { data: products, isLoading } = useProducts(categorySlug)
   const { data: categories } = useCategories()
 
-  const currentCategory = categories?.find(c => c.slug === categorySlug)
+  // Fallback categories if Supabase not connected
+  const fallbackCategories = [
+    { id: '1', slug: 'carbon-fiber-parts', name: 'Carbon Fiber Parts' },
+    { id: '2', slug: 'drone-frames', name: 'Drone Frames' },
+    { id: '3', slug: 'escs', name: 'ESCs' },
+    { id: '4', slug: 'filament', name: 'Filament' },
+    { id: '5', slug: 'fpv-parts', name: 'FPV Parts' },
+    { id: '6', slug: 'motors', name: 'Motors' },
+    { id: '7', slug: 'propellers', name: 'Propellers' },
+    { id: '8', slug: 'servos', name: 'Servos' },
+  ]
+
+  const displayCategories = categories?.length ? categories : fallbackCategories
+
+  const currentCategory = displayCategories?.find(c => c.slug === categorySlug)
 
   const filtered = (products ?? [])
     .filter(p => !fulfillmentFilter || p.fulfillment_type === fulfillmentFilter)
@@ -58,7 +72,7 @@ export default function ShopPage() {
                 >
                   All Products
                 </Link>
-                {categories?.map(cat => (
+                {displayCategories?.map(cat => (
                   <Link
                     key={cat.id}
                     to={`/shop/${cat.slug}`}
