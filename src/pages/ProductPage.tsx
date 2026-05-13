@@ -420,7 +420,7 @@ export default function ProductPage() {
   const showLoading = isLoading && !displayProduct
   const { data: bundleItems } = useBundleItems(displayProduct?.id ?? '')
   const { data: reviews = [] } = useProductReviews(displayProduct?.id ?? '')
-  const { data: productMedia = [] } = useProductMedia(product?.id, false)
+  const { data: productMedia = [] } = useProductMedia(product?.id, true)
   const { addItem, isInCart } = useCart()
   const { formatFromBase, convertFromBase, currency } = useCurrency()
   const template = templateContent ?? getDefaultSiteContent('product_page_template')
@@ -499,11 +499,11 @@ export default function ProductPage() {
 
   const specs = useMemo<SpecRecord>(() => (displayProduct?.specs || {}) as SpecRecord, [displayProduct])
   const mediaImages = useMemo(
-    () => productMedia.filter(media => media.media_type === 'image' && media.url).map(media => media.url as string),
+    () => productMedia.filter(media => media.media_type === 'image' && (media.url || media.storage_path)).map(getMediaHref),
     [productMedia]
   )
   const mediaVideo = useMemo(
-    () => productMedia.find(media => media.media_type === 'video' && media.url),
+    () => productMedia.find(media => media.media_type === 'video' && (media.url || media.storage_path)),
     [productMedia]
   )
   const mediaFiles = useMemo(
@@ -588,7 +588,7 @@ export default function ProductPage() {
     ['video_description'],
     'Video belongs inside the product story, not somewhere off-site. This section shows how printable parts, drone structures, and workshop-ready components can be explained visually without breaking the buying flow.',
   )
-  const productVideoUrl = mediaVideo?.url || getSpecText(specs, ['video_url', 'youtube_url', 'video_embed_url'])
+  const productVideoUrl = mediaVideo ? getMediaHref(mediaVideo) : getSpecText(specs, ['video_url', 'youtube_url', 'video_embed_url'])
   const productVideoIsDirect = isDirectVideoUrl(productVideoUrl)
   const productVideoEmbedUrl = getVideoEmbedUrl(productVideoUrl, showVideo)
 

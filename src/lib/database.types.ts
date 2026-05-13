@@ -208,6 +208,18 @@ export interface SiteContent {
   updated_at?: string
 }
 
+export interface SiteContentRevision {
+  id: string
+  content_key: SiteContentKey | string
+  title: string
+  action: 'draft' | 'publish' | 'restore' | string
+  content: Record<string, unknown>
+  published_content?: Record<string, unknown> | null
+  is_published: boolean
+  created_by?: string | null
+  created_at: string
+}
+
 export interface OrderNotification {
   id: string
   order_id: string

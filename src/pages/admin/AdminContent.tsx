@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Eye, FileText, Globe2, Plus, RotateCcw, Save, Send, Trash2 } from 'lucide-react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ExternalLink, Eye, FileText, Globe2, History, Plus, RotateCcw, Save, Send, Trash2, Undo2 } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import { useAdminSiteContent } from '@/hooks/useSiteContent'
 import {
+  deepMergeContent,
   getDefaultSiteContent,
   type CollectionItemContent,
   type ContentKey,
@@ -24,6 +25,7 @@ import {
   type TestimonialContent,
 } from '@/lib/siteContent'
 import { supabase } from '@/lib/supabase'
+import type { SiteContentRevision } from '@/lib/database.types'
 import styles from './AdminContent.module.css'
 
 const PAGE_META: Record<ContentKey, { label: string; title: string; href: string; description: string }> = {
@@ -57,6 +59,13 @@ const PAGE_META: Record<ContentKey, { label: string; title: string; href: string
     href: '/product/wingxtra-scout-vtol-core-kit',
     description: 'Control the reusable headings, support copy, and SEO template that appear across product detail pages.',
   },
+}
+
+function formatRevisionDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
 }
 
 function cloneList<T>(items: T[]) {
@@ -1294,6 +1303,41 @@ export default function AdminContent() {
     product_page_template: true,
   })
 
+  const contentMap = useMemo(() => ({
+    home_page: homeContent,
+    drones_page: dronesContent,
+    shop_page: shopContent,
+    global_store: globalContent,
+    product_page_template: productTemplateContent,
+  }), [homeContent, dronesContent, shopContent, globalContent, productTemplateContent])
+
+  const applyContentToEditor = (key: ContentKey, content: unknown) => {
+    if (key === 'home_page') setHomeContent(deepMergeContent(getDefaultSiteContent('home_page'), content))
+    if (key === 'drones_page') setDronesContent(deepMergeContent(getDefaultSiteContent('drones_page'), content))
+    if (key === 'shop_page') setShopContent(deepMergeContent(getDefaultSiteContent('shop_page'), content))
+    if (key === 'global_store') setGlobalContent(deepMergeContent(getDefaultSiteContent('global_store'), content))
+    if (key === 'product_page_template') setProductTemplateContent(deepMergeContent(getDefaultSiteContent('product_page_template'), content))
+  }
+
+  const { data: revisions = [], isLoading: revisionsLoading } = useQuery({
+    queryKey: ['site-content-revisions', activePage],
+    queryFn: async () => {
+      const { data: revisionData, error } = await supabase
+        .from('site_content_revisions')
+        .select('*')
+        .eq('content_key', activePage)
+        .order('created_at', { ascending: false })
+        .limit(12)
+
+      if (error) {
+        if (error.code === '42P01' || error.message.toLowerCase().includes('site_content_revisions')) return [] as SiteContentRevision[]
+        throw error
+      }
+
+      return (revisionData || []) as SiteContentRevision[]
+    },
+  })
+
   useEffect(() => {
     if (!data) return
     setHomeContent(structuredClone(data.home_page.content))
@@ -1312,14 +1356,6 @@ export default function AdminContent() {
 
   const saveMutation = useMutation({
     mutationFn: async ({ publish }: { publish: boolean }) => {
-      const contentMap = {
-        home_page: homeContent,
-        drones_page: dronesContent,
-        shop_page: shopContent,
-        global_store: globalContent,
-        product_page_template: productTemplateContent,
-      }
-
       const { data: userData } = await supabase.auth.getUser()
       const payload = {
         key: activePage,
@@ -1332,6 +1368,21 @@ export default function AdminContent() {
 
       const { error } = await supabase.from('site_content').upsert(payload as never, { onConflict: 'key' })
       if (error) throw error
+
+      const { error: revisionError } = await supabase.from('site_content_revisions').insert({
+        content_key: activePage,
+        title: PAGE_META[activePage].title,
+        action: publish ? 'publish' : 'draft',
+        content: contentMap[activePage],
+        published_content: publish ? contentMap[activePage] : data?.[activePage]?.row?.published_content || {},
+        is_published: publish ? true : published[activePage],
+        created_by: userData.user?.id ?? null,
+      } as never)
+
+      if (revisionError && revisionError.code !== '42P01' && !revisionError.message.toLowerCase().includes('site_content_revisions')) {
+        throw revisionError
+      }
+
       return { publish }
     },
     onSuccess: ({ publish }) => {
@@ -1339,10 +1390,74 @@ export default function AdminContent() {
       qc.invalidateQueries({ queryKey: ['site-content', activePage] })
       qc.invalidateQueries({ queryKey: ['site-content', 'global_store'] })
       qc.invalidateQueries({ queryKey: ['site-content', 'product_page_template'] })
+      qc.invalidateQueries({ queryKey: ['site-content-revisions', activePage] })
       toast.success(`${PAGE_META[activePage].label} ${publish ? 'published' : 'draft saved'}`)
     },
     onError: (error: Error) => toast.error(error.message),
   })
+
+  const restoreMutation = useMutation({
+    mutationFn: async (revision: SiteContentRevision) => {
+      const { data: userData } = await supabase.auth.getUser()
+      const restoredContent = deepMergeContent(getDefaultSiteContent(activePage), revision.content)
+
+      const { error } = await supabase.from('site_content').upsert({
+        key: activePage,
+        title: PAGE_META[activePage].title,
+        content: restoredContent,
+        published_content: restoredContent,
+        is_published: true,
+        updated_by: userData.user?.id ?? null,
+      } as never, { onConflict: 'key' })
+
+      if (error) throw error
+
+      const { error: revisionError } = await supabase.from('site_content_revisions').insert({
+        content_key: activePage,
+        title: PAGE_META[activePage].title,
+        action: 'restore',
+        content: restoredContent,
+        published_content: restoredContent,
+        is_published: true,
+        created_by: userData.user?.id ?? null,
+      } as never)
+
+      if (revisionError && revisionError.code !== '42P01' && !revisionError.message.toLowerCase().includes('site_content_revisions')) {
+        throw revisionError
+      }
+
+      return restoredContent
+    },
+    onSuccess: restoredContent => {
+      applyContentToEditor(activePage, restoredContent)
+      setPublished(prev => ({ ...prev, [activePage]: true }))
+      qc.invalidateQueries({ queryKey: ['admin-site-content'] })
+      qc.invalidateQueries({ queryKey: ['site-content', activePage] })
+      qc.invalidateQueries({ queryKey: ['site-content', 'global_store'] })
+      qc.invalidateQueries({ queryKey: ['site-content', 'product_page_template'] })
+      qc.invalidateQueries({ queryKey: ['site-content-revisions', activePage] })
+      toast.success(`${PAGE_META[activePage].label} restored live`)
+    },
+    onError: (error: Error) => toast.error(error.message),
+  })
+
+  const loadRevisionIntoEditor = (revision: SiteContentRevision) => {
+    applyContentToEditor(activePage, revision.content)
+    setPublished(prev => ({ ...prev, [activePage]: revision.is_published }))
+    toast.success('Revision loaded into the editor. Save draft or publish when ready.')
+  }
+
+  const publishLive = () => {
+    if (window.confirm(`Publish ${PAGE_META[activePage].label} live now? This will change what visitors see.`)) {
+      saveMutation.mutate({ publish: true })
+    }
+  }
+
+  const restoreLive = (revision: SiteContentRevision) => {
+    if (window.confirm(`Restore this ${PAGE_META[activePage].label} revision live? Current live content will be replaced.`)) {
+      restoreMutation.mutate(revision)
+    }
+  }
 
   const resetCurrentPage = () => {
     if (!data) return
@@ -1408,7 +1523,7 @@ export default function AdminContent() {
             <Button onClick={() => saveMutation.mutate({ publish: false })} loading={saveMutation.isPending} disabled={isLoading}>
               <Save size={16} /> Save Draft
             </Button>
-            <Button onClick={() => saveMutation.mutate({ publish: true })} loading={saveMutation.isPending} disabled={isLoading}>
+            <Button onClick={publishLive} loading={saveMutation.isPending} disabled={isLoading}>
               <Send size={16} /> Publish Live
             </Button>
           </div>
@@ -1428,6 +1543,44 @@ export default function AdminContent() {
             Keep published content enabled on the storefront
           </label>
         </div>
+
+        <section className={styles.revisionPanel}>
+          <div className={styles.sectionCardHeader}>
+            <div>
+              <h3><History size={17} /> Preview and restore history</h3>
+              <p>Every save or publish creates a checkpoint, so we can recover good content instead of losing strong work during cleanup passes.</p>
+            </div>
+            <span className={styles.revisionCount}>{revisions.length} checkpoints</span>
+          </div>
+
+          {revisionsLoading ? (
+            <div className={styles.revisionEmpty}>Loading revision history...</div>
+          ) : revisions.length === 0 ? (
+            <div className={styles.revisionEmpty}>No checkpoints yet. Save a draft or publish this page to start the history.</div>
+          ) : (
+            <div className={styles.revisionList}>
+              {revisions.map(revision => (
+                <article key={revision.id} className={styles.revisionItem}>
+                  <div>
+                    <span className={`${styles.revisionBadge} ${styles[`revisionBadge${revision.action.charAt(0).toUpperCase()}${revision.action.slice(1)}`] || ''}`}>
+                      {revision.action}
+                    </span>
+                    <h4>{revision.title || PAGE_META[activePage].title}</h4>
+                    <p>{formatRevisionDate(revision.created_at)}</p>
+                  </div>
+                  <div className={styles.revisionActions}>
+                    <button type="button" className={styles.subtleBtn} onClick={() => loadRevisionIntoEditor(revision)}>
+                      <Undo2 size={14} /> Load into editor
+                    </button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => restoreLive(revision)} loading={restoreMutation.isPending}>
+                      Restore Live
+                    </Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         {isLoading ? <div className={styles.loading}>Loading content editor...</div> : editor}
       </div>
