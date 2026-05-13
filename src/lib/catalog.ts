@@ -76,6 +76,19 @@ export function getProductBrand(product: Product): string {
   return product.marketplace_brand?.name || product.brand || 'Wingxtra'
 }
 
+export function slugifyBrandName(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export function getBrandSlug(name?: string | null, managedSlug?: string | null): string {
+  return managedSlug || slugifyBrandName(name || 'Wingxtra')
+}
+
 export function getFamilyLabel(value?: string | null): string {
   return value ? familyLabels[value] || value.replace(/_/g, ' ') : 'UAV Product'
 }

@@ -9,6 +9,7 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import HomePage from '@/pages/HomePage'
 import ShopPage from '@/pages/ShopPage'
 import CollectionPage from '@/pages/CollectionPage'
+import BrandPage from '@/pages/BrandPage'
 import DronesPage from '@/pages/DronesPage'
 import ProductPage from '@/pages/ProductPage'
 import CartPage from '@/pages/CartPage'
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="shop" element={<ShopPage />} />
               <Route path="shop/:categorySlug" element={<ShopPage />} />
               <Route path="collection/:slug" element={<CollectionPage />} />
+              <Route path="brand/:slug" element={<BrandPage />} />
               <Route path="drones" element={<DronesPage />} />
               <Route path="product/:slug" element={<ProductPage />} />
               <Route path="cart" element={<CartPage />} />

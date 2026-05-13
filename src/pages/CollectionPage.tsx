@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BadgeCheck, Boxes, Sparkles } from 'lucide-react
 import SEO from '@/components/SEO'
 import ProductCard from '@/components/products/ProductCard'
 import { useMarketplaceBrands, useProducts } from '@/hooks/useProducts'
-import { PRODUCT_FAMILY_OPTIONS, getProductBrand, getProductFamily, isNewArrival } from '@/lib/catalog'
+import { PRODUCT_FAMILY_OPTIONS, getBrandSlug, getProductBrand, getProductFamily, isNewArrival } from '@/lib/catalog'
 import { fallbackProducts } from '@/lib/fallbackCatalog'
 import styles from './CollectionPage.module.css'
 
@@ -100,7 +100,7 @@ export default function CollectionPage() {
                       <span className={styles.eyebrow}>Brand</span>
                       <h2>{group.name}</h2>
                     </div>
-                    <Link to={`/shop?brand=${encodeURIComponent(group.name)}`}>View in shop <ArrowRight size={16} /></Link>
+                    <Link to={`/brand/${getBrandSlug(group.name)}`}>View brand <ArrowRight size={16} /></Link>
                   </div>
                   <div className={styles.grid}>{group.products.slice(0, 4).map(product => <ProductCard key={product.id} product={product} />)}</div>
                 </article>

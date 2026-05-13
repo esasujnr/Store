@@ -2,7 +2,7 @@
 import { supabase } from '@/lib/supabase'
 import type { BundleItem, Category, Discount, MarketplaceBrand, Product, ProductMedia, Review } from '@/lib/database.types'
 
-const productSelect = '*, category:categories(*)'
+const productSelect = '*, category:categories(*), marketplace_brand:marketplace_brands(*)'
 
 function normalizeProduct(product: unknown): Product {
   const p = product as Product

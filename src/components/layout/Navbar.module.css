@@ -16,7 +16,7 @@
   padding: 0 32px;
 }
 .logo img { width: 168px; height: auto; }
-.nav { display: flex; align-items: center; gap: 28px; margin-left: auto; }
+.nav { display: flex; align-items: center; gap: 24px; margin-left: auto; }
 .navLink {
   color: rgba(255,255,255,0.82);
   background: transparent;
@@ -138,6 +138,91 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+.panelLink {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(46, 231, 127, 0.45);
+  color: #3df28a;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.panelLink:hover {
+  background: rgba(46, 231, 127, 0.1);
+}
+.brandPanel {
+  width: min(1160px, calc(100vw - 32px));
+}
+.brandGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.brandCard {
+  min-height: 180px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 82px 1fr;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.024));
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.brandCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(46,231,127,0.55);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+}
+.brandThumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+}
+.brandThumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.35));
+}
+.brandThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+.brandCard:hover .brandThumb img {
+  transform: scale(1.05);
+}
+.brandInfo {
+  padding: 14px;
+  display: grid;
+  gap: 7px;
+}
+.brandInfo strong {
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.1;
+}
+.brandInfo small {
+  width: fit-content;
+  color: #051109;
+  background: #8ef5b2;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.brandInfo span {
+  color: rgba(255,255,255,0.67);
+  font-size: 12px;
+  line-height: 1.42;
+}
 .actions { display: flex; align-items: center; gap: 16px; }
 .storeSwitcher {
   display: flex;
@@ -246,10 +331,12 @@
 }
 @media (max-width: 1320px) {
   .megaGrid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .brandGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1180px) {
   .megaGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .nav { gap: 18px; }
 }
 
 @media (max-width: 980px) {
@@ -259,5 +346,6 @@
 }
 
 @media (max-width: 760px) {
-  .megaGrid { grid-template-columns: 1fr; }
+  .megaGrid,
+  .brandGrid { grid-template-columns: 1fr; }
 }
