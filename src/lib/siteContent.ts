@@ -44,11 +44,51 @@ export type StorySectionContent = {
   bullets?: string[]
 }
 
+export type HeroSlideContent = {
+  isVisible: boolean
+  eyebrow: string
+  title: string
+  body: string
+  image: string
+  primaryCta: LinkContent
+  secondaryCta: LinkContent
+  featureTag: string
+  featureTitle: string
+  featureBody: string
+  featureHref: string
+  featureLabel: string
+}
+
+export type HomeVisibilitySettings = {
+  collections: boolean
+  featuredProducts: boolean
+  storeFoundations: boolean
+  storySections: boolean
+  deliveryTypes: boolean
+  processStory: boolean
+  testimonials: boolean
+  community: boolean
+  faq: boolean
+  newsletter: boolean
+}
+
+export type HomeDesignSettings = {
+  heroMinHeight: string
+  heroTitleScale: string
+  heroPanelWidth: string
+  heroPanelPosition: 'left' | 'center' | 'right'
+  heroOverlay: string
+  showHeroStats: boolean
+  sectionSpacing: string
+}
+
 export type HomePageContent = {
   seo: {
     title: string
     description: string
   }
+  visibility: HomeVisibilitySettings
+  design: HomeDesignSettings
   hero: {
     eyebrow: string
     title: string
@@ -64,6 +104,7 @@ export type HomePageContent = {
       image: string
       imageAlt: string
     }
+    slides: HeroSlideContent[]
   }
   collections: {
     eyebrow: string
@@ -180,12 +221,31 @@ export type GlobalStoreContent = {
     defaultImage: string
   }
   navbar: {
-    dronesLabel: string
     shopLabel: string
+    newArrivalsLabel: string
     productsLabel: string
+    brandsLabel: string
+    showShop: boolean
+    showNewArrivals: boolean
+    showProducts: boolean
+    showBrands: boolean
     megaEyebrow: string
     megaTitle: string
     megaViewAllLabel: string
+    brandsEyebrow: string
+    brandsTitle: string
+    brandsViewAllLabel: string
+    maxBrandCards: string
+  }
+  theme: {
+    backgroundColor: string
+    surfaceColor: string
+    accentColor: string
+    accentSoftColor: string
+    textColor: string
+    mutedTextColor: string
+    heroOverlayColor: string
+    cardRadius: string
   }
   footer: {
     tagline: string
@@ -239,6 +299,27 @@ export const defaultSiteContent: SiteContentMap = {
       title: 'Wingxtra Store - 3D Printed Drones, Airframes, and Drone Parts',
       description: 'Shop Wingxtra drone platforms, digital STL files, MJF printed parts, and composite hardware in a premium product-focused storefront.',
     },
+    visibility: {
+      collections: true,
+      featuredProducts: true,
+      storeFoundations: true,
+      storySections: true,
+      deliveryTypes: true,
+      processStory: true,
+      testimonials: true,
+      community: true,
+      faq: true,
+      newsletter: true,
+    },
+    design: {
+      heroMinHeight: '720px',
+      heroTitleScale: '1',
+      heroPanelWidth: '640px',
+      heroPanelPosition: 'left',
+      heroOverlay: '0.72',
+      showHeroStats: true,
+      sectionSpacing: '1',
+    },
     hero: {
       eyebrow: 'Wingxtra Store',
       title: '3D printed drones, airframes, and flight parts in one serious store.',
@@ -258,6 +339,50 @@ export const defaultSiteContent: SiteContentMap = {
         image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1200&q=80',
         imageAlt: 'Wingxtra drone product',
       },
+      slides: [
+        {
+          isVisible: true,
+          eyebrow: 'Wingxtra Store',
+          title: '3D printed drones, airframes, and uav components.',
+          body: 'Buy digital STL files, MJF printed hardware, and composite drone parts through a cleaner catalog built for real products, real repairs, and real builds.',
+          image: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1800&q=82',
+          primaryCta: { label: 'Shop Drones', href: '/drones' },
+          secondaryCta: { label: 'Shop Components', href: '/shop' },
+          featureTag: 'Featured drone collection',
+          featureTitle: 'Dedicated drone pages with specs, descriptions, and compatible parts.',
+          featureBody: 'The store separates drone products from the broader component catalog so buyers can understand the platform first, then build around it with confidence.',
+          featureHref: '/drones',
+          featureLabel: 'View drone collection',
+        },
+        {
+          isVisible: true,
+          eyebrow: 'Curated UAV marketplace',
+          title: 'Curated UAV systems, parts, and mission hardware.',
+          body: 'Wingxtra aircraft and selected partner products sit inside one clear buying experience for builders and operators.',
+          image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1800&q=82',
+          primaryCta: { label: 'Open Catalog', href: '/shop' },
+          secondaryCta: { label: 'View Collections', href: '/collection/new-arrivals' },
+          featureTag: 'Marketplace expansion',
+          featureTitle: 'A cleaner way to shop UAV platforms, components, and technologies.',
+          featureBody: 'The store supports Wingxtra aircraft plus third-party products without losing the premium aerospace structure.',
+          featureHref: '/shop',
+          featureLabel: 'Browse marketplace',
+        },
+        {
+          isVisible: true,
+          eyebrow: 'Additive manufacturing',
+          title: 'Digital files, MJF parts, and shipped hardware made clear.',
+          body: 'Customers can quickly tell whether they are buying a download, a made-to-order part, or a physical shipment.',
+          image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=1800&q=82',
+          primaryCta: { label: 'Explore Files', href: '/collection/additive_manufacturing' },
+          secondaryCta: { label: 'Shop Parts', href: '/shop' },
+          featureTag: 'Fulfillment clarity',
+          featureTitle: 'Files and physical products are separated before checkout.',
+          featureBody: 'Digital downloads, MJF parts, and composite hardware are shown as real products with specific expectations.',
+          featureHref: '/collection/additive_manufacturing',
+          featureLabel: 'Open additive collection',
+        },
+      ],
     },
     collections: {
       eyebrow: 'Collections',
@@ -475,12 +600,31 @@ export const defaultSiteContent: SiteContentMap = {
       defaultImage: 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg',
     },
     navbar: {
-      dronesLabel: 'Drones',
       shopLabel: 'Shop',
+      newArrivalsLabel: 'New Arrivals',
       productsLabel: 'Products',
+      brandsLabel: 'Brands',
+      showShop: true,
+      showNewArrivals: true,
+      showProducts: true,
+      showBrands: true,
       megaEyebrow: 'Collections',
-      megaTitle: 'Browse the store the way customers actually shop',
+      megaTitle: 'Browse by UAV mission, platform, and technology',
       megaViewAllLabel: 'View all products',
+      brandsEyebrow: 'Brand partners',
+      brandsTitle: 'Preview curated UAV brands',
+      brandsViewAllLabel: 'View all brands',
+      maxBrandCards: '8',
+    },
+    theme: {
+      backgroundColor: '#020603',
+      surfaceColor: '#0d1510',
+      accentColor: '#25d66f',
+      accentSoftColor: '#8ef5b2',
+      textColor: '#ffffff',
+      mutedTextColor: 'rgba(239, 249, 242, 0.7)',
+      heroOverlayColor: 'rgba(3, 8, 4, 0.72)',
+      cardRadius: '0px',
     },
     footer: {
       tagline: 'Precision-engineered drone components and 3D printed parts for builders who demand performance.',

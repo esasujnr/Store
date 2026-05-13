@@ -1,1 +1,170 @@
-﻿.page{display:grid;gap:24px}.header,.form,.card{background:#101912;border:1px solid rgba(255,255,255,.1);padding:24px}.header span{color:#25d66f;text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:900}.header h1{font-size:44px;margin:8px 0}.header p{color:rgba(255,255,255,.68)}.form{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card strong{display:block;font-size:20px}.card span{color:#25d66f;font-weight:900}.card p{color:rgba(255,255,255,.68);margin-top:8px}@media(max-width:800px){.form,.grid{grid-template-columns:1fr}}
+.page {
+  display: grid;
+  gap: 24px;
+}
+
+.header,
+.form,
+.card {
+  background: linear-gradient(180deg, rgba(16, 25, 18, 0.94), rgba(7, 11, 8, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
+}
+
+.header span {
+  color: #25d66f;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.header h1 {
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  line-height: 0.95;
+  margin: 10px 0 12px;
+  color: #ffffff;
+}
+
+.header p,
+.card p {
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.7;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.stats strong {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(37, 214, 111, 0.1);
+  color: #baffcf;
+  font-size: 0.82rem;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.field,
+.fullField {
+  display: grid;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.86rem;
+}
+
+.field select,
+.fullField textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  padding: 12px 14px;
+}
+
+.field select option {
+  color: #0d1510;
+}
+
+.fullField {
+  grid-column: 1 / -1;
+}
+
+.fullField textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.switchField {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.switchField input {
+  width: 18px;
+  height: 18px;
+  accent-color: #25d66f;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card {
+  display: grid;
+  gap: 16px;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+
+.cardTop strong {
+  display: block;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+.cardTop span {
+  display: inline-flex;
+  margin-top: 6px;
+  color: #25d66f;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+}
+
+.cardTop a {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.preview {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.editorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 980px) {
+  .form,
+  .grid,
+  .editorGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -13,6 +13,7 @@ import {
   type DronesPageContent,
   type FaqContent,
   type GlobalStoreContent,
+  type HeroSlideContent,
   type HighlightContent,
   type HomePageContent,
   type LinkContent,
@@ -116,6 +117,30 @@ function TextareaField({
   )
 }
 
+function ToggleField({ label, checked, onChange, description }: { label: string; checked: boolean; onChange: (checked: boolean) => void; description?: string }) {
+  return (
+    <label className={styles.toggleField}>
+      <input type="checkbox" checked={checked} onChange={event => onChange(event.target.checked)} />
+      <span>
+        <strong>{label}</strong>
+        {description && <small>{description}</small>}
+      </span>
+    </label>
+  )
+}
+
+function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className={styles.field}>
+      <span>{label}</span>
+      <div className={styles.colorRow}>
+        <input type="color" value={value.startsWith('#') ? value : '#25d66f'} onChange={event => onChange(event.target.value)} />
+        <input className={styles.input} value={value} onChange={event => onChange(event.target.value)} />
+      </div>
+    </label>
+  )
+}
+
 function LinkFields({ label, value, onChange }: { label: string; value: LinkContent; onChange: (next: LinkContent) => void }) {
   return (
     <div className={styles.editorCard}>
@@ -167,6 +192,75 @@ function HighlightsEditor({
               <Field label="Value" value={item.value} onChange={next => onChange(replaceItem(items, index, { ...item, value: next }))} />
               <Field label="Label" value={item.label} onChange={next => onChange(replaceItem(items, index, { ...item, label: next }))} />
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function HeroSlidesEditor({ items, onChange }: { items: HeroSlideContent[]; onChange: (next: HeroSlideContent[]) => void }) {
+  const addSlide = () =>
+    onChange([
+      ...items,
+      {
+        isVisible: true,
+        eyebrow: 'New slide',
+        title: 'New homepage hero slide',
+        body: 'Describe this homepage message.',
+        image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1800&q=82',
+        primaryCta: { label: 'Primary action', href: '/shop' },
+        secondaryCta: { label: 'Secondary action', href: '/drones' },
+        featureTag: 'Store feature',
+        featureTitle: 'Supporting product message',
+        featureBody: 'Use this to explain what the slide is promoting.',
+        featureHref: '/shop',
+        featureLabel: 'Open collection',
+      },
+    ])
+
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionCardHeader}>
+        <div>
+          <h3>Homepage hero slides</h3>
+          <p>Add, hide, or edit the slider messages without touching code.</p>
+        </div>
+        <button type="button" className={styles.subtleBtn} onClick={addSlide}>
+          <Plus size={14} /> Add Slide
+        </button>
+      </div>
+      <div className={styles.stack}>
+        {items.map((item, index) => (
+          <div key={`${item.title}-${index}`} className={styles.editorCard}>
+            <div className={styles.editorHeader}>
+              <h4>Hero Slide {index + 1}</h4>
+              <button type="button" className={styles.iconBtn} onClick={() => onChange(removeItem(items, index))}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <ToggleField label="Show this slide" checked={item.isVisible} onChange={next => onChange(replaceItem(items, index, { ...item, isVisible: next }))} />
+            <div className={styles.twoColumn}>
+              <Field label="Eyebrow" value={item.eyebrow} onChange={next => onChange(replaceItem(items, index, { ...item, eyebrow: next }))} />
+              <Field label="Title" value={item.title} onChange={next => onChange(replaceItem(items, index, { ...item, title: next }))} />
+            </div>
+            <TextareaField label="Body" rows={3} value={item.body} onChange={next => onChange(replaceItem(items, index, { ...item, body: next }))} />
+            <Field label="Background image URL" value={item.image} onChange={next => onChange(replaceItem(items, index, { ...item, image: next }))} />
+            <div className={styles.twoColumn}>
+              <Field label="Primary button label" value={item.primaryCta.label} onChange={next => onChange(replaceItem(items, index, { ...item, primaryCta: { ...item.primaryCta, label: next } }))} />
+              <Field label="Primary button link" value={item.primaryCta.href} onChange={next => onChange(replaceItem(items, index, { ...item, primaryCta: { ...item.primaryCta, href: next } }))} />
+            </div>
+            <div className={styles.twoColumn}>
+              <Field label="Secondary button label" value={item.secondaryCta.label} onChange={next => onChange(replaceItem(items, index, { ...item, secondaryCta: { ...item.secondaryCta, label: next } }))} />
+              <Field label="Secondary button link" value={item.secondaryCta.href} onChange={next => onChange(replaceItem(items, index, { ...item, secondaryCta: { ...item.secondaryCta, href: next } }))} />
+            </div>
+            <div className={styles.twoColumn}>
+              <Field label="Feature tag" value={item.featureTag} onChange={next => onChange(replaceItem(items, index, { ...item, featureTag: next }))} />
+              <Field label="Feature link label" value={item.featureLabel} onChange={next => onChange(replaceItem(items, index, { ...item, featureLabel: next }))} />
+            </div>
+            <Field label="Feature title" value={item.featureTitle} onChange={next => onChange(replaceItem(items, index, { ...item, featureTitle: next }))} />
+            <TextareaField label="Feature body" rows={3} value={item.featureBody} onChange={next => onChange(replaceItem(items, index, { ...item, featureBody: next }))} />
+            <Field label="Feature link" value={item.featureHref} onChange={next => onChange(replaceItem(items, index, { ...item, featureHref: next }))} />
           </div>
         ))}
       </div>
@@ -447,6 +541,54 @@ function HomeContentEditor({ content, onChange }: { content: HomePageContent; on
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
           <div>
+            <h3>Homepage section visibility</h3>
+            <p>Hide unfinished homepage sections while you stock real products, media, and copy.</p>
+          </div>
+        </div>
+        <div className={styles.toggleGrid}>
+          {Object.entries(content.visibility).map(([key, value]) => (
+            <ToggleField
+              key={key}
+              label={key.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase())}
+              checked={value}
+              onChange={next => onChange({ ...content, visibility: { ...content.visibility, [key]: next } })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}>
+          <div>
+            <h3>Homepage visual controls</h3>
+            <p>Control hero height, hero text scale, panel width, and section breathing room without CSS edits.</p>
+          </div>
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Hero minimum height" value={content.design.heroMinHeight} onChange={next => onChange({ ...content, design: { ...content.design, heroMinHeight: next } })} />
+          <Field label="Hero title scale" value={content.design.heroTitleScale} onChange={next => onChange({ ...content, design: { ...content.design, heroTitleScale: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Hero panel width" value={content.design.heroPanelWidth} onChange={next => onChange({ ...content, design: { ...content.design, heroPanelWidth: next } })} />
+          <Field label="Hero overlay strength" value={content.design.heroOverlay} onChange={next => onChange({ ...content, design: { ...content.design, heroOverlay: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <label className={styles.field}>
+            <span>Hero panel position</span>
+            <select className={styles.select} value={content.design.heroPanelPosition} onChange={event => onChange({ ...content, design: { ...content.design, heroPanelPosition: event.target.value as HomePageContent['design']['heroPanelPosition'] } })}>
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <Field label="Section spacing scale" value={content.design.sectionSpacing} onChange={next => onChange({ ...content, design: { ...content.design, sectionSpacing: next } })} />
+        </div>
+        <ToggleField label="Show hero stats" checked={content.design.showHeroStats} onChange={next => onChange({ ...content, design: { ...content.design, showHeroStats: next } })} />
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}>
+          <div>
             <h3>Homepage hero</h3>
             <p>These are the first words, links, and trust cues customers meet on the storefront.</p>
           </div>
@@ -467,6 +609,8 @@ function HomeContentEditor({ content, onChange }: { content: HomePageContent; on
       </div>
 
       <HighlightsEditor label="Hero Highlights" items={content.hero.highlights} onChange={next => onChange({ ...content, hero: { ...content.hero, highlights: next } })} />
+
+      <HeroSlidesEditor items={content.hero.slides} onChange={next => onChange({ ...content, hero: { ...content.hero, slides: next } })} />
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
@@ -805,16 +949,51 @@ function GlobalContentEditor({ content, onChange }: { content: GlobalStoreConten
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Navbar content</h3><p>Control the main navigation labels and the large product-menu messaging.</p></div></div>
+        <div className={styles.toggleGrid}>
+          <ToggleField label="Show Shop nav item" checked={content.navbar.showShop} onChange={next => onChange({ ...content, navbar: { ...content.navbar, showShop: next } })} />
+          <ToggleField label="Show New Arrivals nav item" checked={content.navbar.showNewArrivals} onChange={next => onChange({ ...content, navbar: { ...content.navbar, showNewArrivals: next } })} />
+          <ToggleField label="Show Products dropdown" checked={content.navbar.showProducts} onChange={next => onChange({ ...content, navbar: { ...content.navbar, showProducts: next } })} />
+          <ToggleField label="Show Brands dropdown" checked={content.navbar.showBrands} onChange={next => onChange({ ...content, navbar: { ...content.navbar, showBrands: next } })} />
+        </div>
         <div className={styles.twoColumn}>
-          <Field label="Drones label" value={content.navbar.dronesLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, dronesLabel: next } })} />
           <Field label="Shop label" value={content.navbar.shopLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, shopLabel: next } })} />
+          <Field label="New arrivals label" value={content.navbar.newArrivalsLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, newArrivalsLabel: next } })} />
         </div>
         <div className={styles.twoColumn}>
           <Field label="Products label" value={content.navbar.productsLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, productsLabel: next } })} />
+          <Field label="Brands label" value={content.navbar.brandsLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, brandsLabel: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
           <Field label="Mega-menu eyebrow" value={content.navbar.megaEyebrow} onChange={next => onChange({ ...content, navbar: { ...content.navbar, megaEyebrow: next } })} />
+          <Field label="Brands menu eyebrow" value={content.navbar.brandsEyebrow} onChange={next => onChange({ ...content, navbar: { ...content.navbar, brandsEyebrow: next } })} />
         </div>
         <Field label="Mega-menu title" value={content.navbar.megaTitle} onChange={next => onChange({ ...content, navbar: { ...content.navbar, megaTitle: next } })} />
-        <Field label="View all products label" value={content.navbar.megaViewAllLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, megaViewAllLabel: next } })} />
+        <Field label="Brands menu title" value={content.navbar.brandsTitle} onChange={next => onChange({ ...content, navbar: { ...content.navbar, brandsTitle: next } })} />
+        <div className={styles.twoColumn}>
+          <Field label="View all products label" value={content.navbar.megaViewAllLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, megaViewAllLabel: next } })} />
+          <Field label="View all brands label" value={content.navbar.brandsViewAllLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, brandsViewAllLabel: next } })} />
+        </div>
+        <Field label="Maximum brand cards in dropdown" value={content.navbar.maxBrandCards} onChange={next => onChange({ ...content, navbar: { ...content.navbar, maxBrandCards: next } })} />
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Store theme</h3><p>Change key colors and surface settings globally. Use carefully; this controls the storefront feel.</p></div></div>
+        <div className={styles.twoColumn}>
+          <ColorField label="Background color" value={content.theme.backgroundColor} onChange={next => onChange({ ...content, theme: { ...content.theme, backgroundColor: next } })} />
+          <ColorField label="Surface color" value={content.theme.surfaceColor} onChange={next => onChange({ ...content, theme: { ...content.theme, surfaceColor: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <ColorField label="Accent color" value={content.theme.accentColor} onChange={next => onChange({ ...content, theme: { ...content.theme, accentColor: next } })} />
+          <ColorField label="Accent soft color" value={content.theme.accentSoftColor} onChange={next => onChange({ ...content, theme: { ...content.theme, accentSoftColor: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <ColorField label="Text color" value={content.theme.textColor} onChange={next => onChange({ ...content, theme: { ...content.theme, textColor: next } })} />
+          <Field label="Muted text color" value={content.theme.mutedTextColor} onChange={next => onChange({ ...content, theme: { ...content.theme, mutedTextColor: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Hero overlay color" value={content.theme.heroOverlayColor} onChange={next => onChange({ ...content, theme: { ...content.theme, heroOverlayColor: next } })} />
+          <Field label="Card radius" value={content.theme.cardRadius} onChange={next => onChange({ ...content, theme: { ...content.theme, cardRadius: next } })} />
+        </div>
       </div>
 
       <div className={styles.sectionCard}>
