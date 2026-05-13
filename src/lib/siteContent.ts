@@ -180,6 +180,15 @@ export type DronesPageContent = {
     title: string
     description: string
   }
+  visibility: {
+    hero: boolean
+    quickNav: boolean
+    video: boolean
+    story: boolean
+    featuredProduct: boolean
+    catalog: boolean
+    blueprint: boolean
+  }
   hero: {
     eyebrow: string
     title: string
@@ -187,6 +196,34 @@ export type DronesPageContent = {
     stats: HighlightContent[]
     featuredTag: string
     featuredLinkLabel: string
+  }
+  quickNav: LinkContent[]
+  video: {
+    title: string
+    url: string
+    playLabel: string
+    posterFallback: string
+  }
+  story: {
+    title: string
+    blocks: PointContent[]
+  }
+  featured: {
+    eyebrow: string
+    titleFallback: string
+    description: string
+    linkLabel: string
+  }
+  catalog: {
+    title: string
+    maxItems: string
+  }
+  blueprint: {
+    eyebrow: string
+    title: string
+    description: string
+    cardTitle: string
+    cardDescription: string
   }
   filterIntro: {
     eyebrow: string
@@ -204,12 +241,27 @@ export type ShopPageContent = {
     title: string
     description: string
   }
+  visibility: {
+    hero: boolean
+    filters: boolean
+    resultSummary: boolean
+    collectionTiles: boolean
+    productGrid: boolean
+    featureRail: boolean
+  }
   hero: {
     eyebrow: string
     title: string
     description: string
     highlights: string[]
     stats: HighlightContent[]
+  }
+  controls: {
+    searchPlaceholder: string
+    resultLabel: string
+    clearFiltersLabel: string
+    emptyState: string
+    quickLinks: LinkContent[]
   }
   featureRail: Array<PointContent & { href: string; linkLabel: string }>
 }
@@ -263,6 +315,41 @@ export type ProductPageTemplateContent = {
   seo: {
     titleTemplate: string
     descriptionTemplate: string
+  }
+  visibility: {
+    trustLine: boolean
+    assuranceBar: boolean
+    beforeYouBuy: boolean
+    templateGuide: boolean
+    dossier: boolean
+    video: boolean
+    detailCards: boolean
+    technicalSpecs: boolean
+    reviews: boolean
+    bundles: boolean
+  }
+  labels: {
+    trustConnector: string
+    trustSuffix: string
+    assuranceOne: string
+    assuranceTwo: string
+    assuranceThree: string
+    videoEyebrow: string
+    productStoryEyebrow: string
+    blueprintEyebrow: string
+    overviewEyebrow: string
+    filesEyebrow: string
+    technicalDataEyebrow: string
+    shoppingListEyebrow: string
+    addAgainLabel: string
+    addToCartLabel: string
+    outOfStockLabel: string
+    signInReviewMessage: string
+    emptyReviews: string
+    reviewFormTitleCreate: string
+    reviewFormTitleUpdate: string
+    reviewSubmitCreate: string
+    reviewSubmitUpdate: string
   }
   headings: {
     includedTitle: string
@@ -542,6 +629,15 @@ export const defaultSiteContent: SiteContentMap = {
       title: 'Drone Collection',
       description: 'Browse Wingxtra drone products in a dedicated collection page with clearer descriptions, specs, buying context, and fulfillment differences.',
     },
+    visibility: {
+      hero: true,
+      quickNav: true,
+      video: true,
+      story: true,
+      featuredProduct: true,
+      catalog: true,
+      blueprint: true,
+    },
     hero: {
       eyebrow: 'Drone Collection',
       title: 'Choose the platform first. Build the rest around it.',
@@ -552,6 +648,57 @@ export const defaultSiteContent: SiteContentMap = {
       ],
       featuredTag: 'Featured platform',
       featuredLinkLabel: 'Open product page',
+    },
+    quickNav: [
+      { label: 'Aircraft', href: '/drones' },
+      { label: 'Blueprint Files', href: '/collection/additive_manufacturing' },
+      { label: 'Printed Parts', href: '/collection/airframes_kits' },
+      { label: 'Shopping List', href: '/collection/propulsion_systems' },
+    ],
+    video: {
+      title: 'Wingxtra drone presentation',
+      url: 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ',
+      playLabel: 'Play video',
+      posterFallback: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1600&q=80',
+    },
+    story: {
+      title: 'Designed as a real aircraft collection',
+      blocks: [
+        {
+          title: 'Designed to be printed',
+          description:
+            'Every aircraft collection needs a clear build story: what the platform is for, how it is produced, and which parts are digital files, printed hardware, or shipped assemblies.',
+        },
+        {
+          title: 'Inspired by natural efficiency',
+          description:
+            'The buying flow should help customers understand weight, structure, load paths, and repair logic before they choose a file pack or a physical aircraft component.',
+        },
+        {
+          title: 'Platform-first product pages',
+          description:
+            'Customers should understand the aircraft first, then the files, parts, electronics, and mission systems that belong to it. That keeps the store simple without making it shallow.',
+        },
+      ],
+    },
+    featured: {
+      eyebrow: 'Recommended',
+      titleFallback: 'Featured aircraft platform',
+      description:
+        'This aircraft gives customers a focused starting point before they compare files, printed parts, propulsion, flight control, and mission accessories.',
+      linkLabel: 'Open details',
+    },
+    catalog: {
+      title: 'Current aircraft lineup',
+      maxItems: '3',
+    },
+    blueprint: {
+      eyebrow: 'Blueprint Files',
+      title: 'Files, videos, and structured detail blocks belong in the same flow.',
+      description:
+        'Aircraft products need supporting files, build guidance, video context, and compatible hardware presented in the same buying flow so customers do not get lost between pages.',
+      cardTitle: 'Presentation-ready content blocks',
+      cardDescription: 'Use this section later for product videos, print notes, assembly guidance, and blueprint explanations.',
     },
     filterIntro: {
       eyebrow: 'Filter the range',
@@ -572,6 +719,14 @@ export const defaultSiteContent: SiteContentMap = {
       title: 'Shop All Products',
       description: 'Browse the full Wingxtra catalog, compare physical and digital fulfillment paths, and move into the right drone or component family faster.',
     },
+    visibility: {
+      hero: true,
+      filters: true,
+      resultSummary: true,
+      collectionTiles: true,
+      productGrid: true,
+      featureRail: true,
+    },
     hero: {
       eyebrow: 'Store Catalog',
       title: 'Shop Wingxtra by product path',
@@ -585,6 +740,17 @@ export const defaultSiteContent: SiteContentMap = {
         { value: 'products shown', label: '' },
         { value: 'featured drones', label: '' },
         { value: 'sale items', label: '' },
+      ],
+    },
+    controls: {
+      searchPlaceholder: 'Search products, brands, mission systems...',
+      resultLabel: 'products shown',
+      clearFiltersLabel: 'Clear filters',
+      emptyState: 'No products match these filters yet. Clear filters or add products in admin.',
+      quickLinks: [
+        { label: 'New arrivals', href: '/collection/new-arrivals' },
+        { label: 'Additive manufacturing', href: '/collection/additive_manufacturing' },
+        { label: 'Wingxtra aircraft', href: '/drones' },
       ],
     },
     featureRail: [
@@ -641,6 +807,41 @@ export const defaultSiteContent: SiteContentMap = {
     seo: {
       titleTemplate: '{product}',
       descriptionTemplate: 'Buy {product} - {summary}',
+    },
+    visibility: {
+      trustLine: true,
+      assuranceBar: true,
+      beforeYouBuy: true,
+      templateGuide: true,
+      dossier: true,
+      video: true,
+      detailCards: true,
+      technicalSpecs: true,
+      reviews: true,
+      bundles: true,
+    },
+    labels: {
+      trustConnector: '|',
+      trustSuffix: 'Curated and supplied by Wingxtra',
+      assuranceOne: 'Secure checkout',
+      assuranceTwo: 'Builder-first guidance',
+      assuranceThree: 'Compatible system parts',
+      videoEyebrow: 'Build video',
+      productStoryEyebrow: 'Product story',
+      blueprintEyebrow: 'Blueprint files',
+      overviewEyebrow: 'Overview',
+      filesEyebrow: 'Files and fulfillment',
+      technicalDataEyebrow: 'Technical data',
+      shoppingListEyebrow: 'Shopping list',
+      addAgainLabel: 'Add Again',
+      addToCartLabel: 'Add to Cart',
+      outOfStockLabel: 'Out of stock',
+      signInReviewMessage: 'Sign in to leave a review for this product.',
+      emptyReviews: 'No reviews yet. Be the first to leave one.',
+      reviewFormTitleCreate: 'Write a review',
+      reviewFormTitleUpdate: 'Update your review',
+      reviewSubmitCreate: 'Submit Review',
+      reviewSubmitUpdate: 'Update Review',
     },
     headings: {
       includedTitle: 'Included in this purchase',

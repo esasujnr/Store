@@ -21,23 +21,27 @@ type Slide = {
   image: string
 }
 
-const STORY_BLOCKS = [
-  {
-    title: 'Designed to be printed',
-    body:
-      'Every aircraft collection needs a clear build story: what the platform is for, how it is produced, and which parts are digital files, printed hardware, or shipped assemblies.',
-  },
-  {
-    title: 'Inspired by natural efficiency',
-    body:
-      'The buying flow should help customers understand weight, structure, load paths, and repair logic before they choose a file pack or a physical aircraft component.',
-  },
-  {
-    title: 'Platform-first product pages',
-    body:
-      'Customers should understand the aircraft first, then the files, parts, electronics, and mission systems that belong to it. That keeps the store simple without making it shallow.',
-  },
-]
+function getVideoEmbedUrl(rawUrl: string, autoplay = false) {
+  const source = rawUrl.trim() || 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ'
+  let embedUrl = source
+
+  try {
+    const url = new URL(source)
+    const host = url.hostname.replace(/^www\./, '')
+
+    if (host === 'youtu.be') {
+      embedUrl = `https://www.youtube-nocookie.com/embed/${url.pathname.replace('/', '')}`
+    } else if (host.includes('youtube.com')) {
+      const videoId = url.searchParams.get('v') || url.pathname.split('/').filter(Boolean).pop()
+      if (videoId) embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`
+    }
+  } catch {
+    return source
+  }
+
+  const joiner = embedUrl.includes('?') ? '&' : '?'
+  return `${embedUrl}${joiner}rel=0&modestbranding=1&playsinline=1${autoplay ? '&autoplay=1' : ''}`
+}
 
 export default function DronesPage() {
   const location = useLocation()
@@ -48,6 +52,7 @@ export default function DronesPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
   const content = siteContent ?? getDefaultSiteContent('drones_page')
+  const maxCatalogItems = Math.max(1, Number.parseInt(content.catalog.maxItems, 10) || 3)
 
   const droneProducts = useMemo(
     () => (products?.length ? products : fallbackProducts)
@@ -77,16 +82,25 @@ export default function DronesPage() {
     [droneProducts]
   )
 
-  const activeSlide = slides[currentSlide] ?? slides[0]
+  const fallbackSlide: Slide = {
+    eyebrow: content.hero.eyebrow,
+    title: content.hero.title,
+    subtitle: content.hero.description,
+    ctaLabel: content.hero.featuredLinkLabel,
+    ctaHref: '/shop?family=wingxtra_aircraft',
+    image: content.video.posterFallback,
+  }
+  const heroSlides = slides.length ? slides : [fallbackSlide]
+  const activeSlide = heroSlides[currentSlide % heroSlides.length] ?? fallbackSlide
   const featuredProduct = droneProducts[0]
-  const comparisonProducts = droneProducts.slice(0, 3)
+  const comparisonProducts = droneProducts.slice(0, maxCatalogItems)
 
   function goPrev() {
-    setCurrentSlide(value => (value === 0 ? slides.length - 1 : value - 1))
+    setCurrentSlide(value => (value === 0 ? heroSlides.length - 1 : value - 1))
   }
 
   function goNext() {
-    setCurrentSlide(value => (value + 1) % slides.length)
+    setCurrentSlide(value => (value + 1) % heroSlides.length)
   }
 
   return (
@@ -102,6 +116,7 @@ export default function DronesPage() {
       />
 
       <div className={styles.page}>
+        {content.visibility.hero && (
         <section className={styles.hero}>
           {activeSlide && (
             <>
@@ -118,7 +133,7 @@ export default function DronesPage() {
             </>
           )}
 
-          {slides.length > 1 && (
+          {heroSlides.length > 1 && (
             <>
               <button type="button" className={`${styles.arrow} ${styles.arrowLeft}`} onClick={goPrev} aria-label="Previous slide">
                 <ChevronLeft size={24} />
@@ -129,26 +144,29 @@ export default function DronesPage() {
             </>
           )}
         </section>
+        )}
 
+        {content.visibility.quickNav && (
         <section className={styles.quickNav}>
           <div className="container">
             <div className={styles.quickNavInner}>
-              <Link to="/drones" className={styles.quickNavItem}>Aircraft</Link>
-              <Link to="/collection/additive_manufacturing" className={styles.quickNavItem}>Blueprint Files</Link>
-              <Link to="/collection/airframes_kits" className={styles.quickNavItem}>Printed Parts</Link>
-              <Link to="/collection/propulsion_systems" className={styles.quickNavItem}>Shopping List</Link>
+              {content.quickNav.map(link => (
+                <Link key={`${link.href}-${link.label}`} to={link.href} className={styles.quickNavItem}>{link.label}</Link>
+              ))}
             </div>
           </div>
         </section>
+        )}
 
+        {content.visibility.video && (
         <section className={styles.videoSection}>
           <div className={styles.videoBand}>
             <div className={styles.videoFrame}>
               {showVideo ? (
                 <iframe
                   className={styles.videoEmbed}
-                  src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?rel=0&modestbranding=1&playsinline=1&autoplay=1"
-                  title="Wingxtra drone presentation"
+                  src={getVideoEmbedUrl(content.video.url, true)}
+                  title={content.video.title}
                   loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
@@ -158,36 +176,39 @@ export default function DronesPage() {
                 <button type="button" className={styles.videoPreviewButton} onClick={() => setShowVideo(true)}>
                   <img
                     src={activeSlide?.image || 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1600&q=80'}
-                    alt="Play Wingxtra drone presentation"
+                    alt={content.video.title}
                     className={styles.videoPreviewImage}
                   />
                   <span className={styles.videoPlayButton}>
                     <PlayCircle size={24} />
-                    Play video
+                    {content.video.playLabel}
                   </span>
                 </button>
               )}
             </div>
           </div>
         </section>
+        )}
 
+        {content.visibility.story && (
         <section className={styles.storySection}>
           <div className="container">
             <div className={styles.storyHeader}>
-              <h2>Designed as a real aircraft collection</h2>
+              <h2>{content.story.title}</h2>
             </div>
             <div className={styles.storyGrid}>
-              {STORY_BLOCKS.map(block => (
+              {content.story.blocks.map(block => (
                 <article key={block.title} className={styles.storyCard}>
                   <h3>{block.title}</h3>
-                  <p>{block.body}</p>
+                  <p>{block.description}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
+        )}
 
-        {featuredProduct && (
+        {content.visibility.featuredProduct && featuredProduct && (
           <section className={styles.featureSection}>
             <div className="container">
               <div className={styles.featureLayout}>
@@ -198,14 +219,11 @@ export default function DronesPage() {
                   />
                 </div>
                 <div className={styles.featureCopy}>
-                  <span className={styles.eyebrow}>Recommended</span>
-                  <h2>{featuredProduct.name}</h2>
-                  <p>
-                    This aircraft gives customers a focused starting point before they compare files,
-                    printed parts, propulsion, flight control, and mission accessories.
-                  </p>
+                  <span className={styles.eyebrow}>{content.featured.eyebrow}</span>
+                  <h2>{featuredProduct.name || content.featured.titleFallback}</h2>
+                  <p>{content.featured.description}</p>
                   <Link to={`/product/${featuredProduct.slug}`} className={styles.secondaryCta}>
-                    Open details
+                    {content.featured.linkLabel}
                   </Link>
                 </div>
               </div>
@@ -213,10 +231,11 @@ export default function DronesPage() {
           </section>
         )}
 
+        {content.visibility.catalog && (
         <section className={styles.catalogSection}>
           <div className="container">
             <div className={styles.catalogHeader}>
-              <h2>Current aircraft lineup</h2>
+              <h2>{content.catalog.title}</h2>
             </div>
             <div className={styles.catalogGrid}>
               {comparisonProducts.map(product => {
@@ -251,26 +270,26 @@ export default function DronesPage() {
             </div>
           </div>
         </section>
+        )}
 
+        {content.visibility.blueprint && (
         <section className={styles.blueprintSection}>
           <div className="container">
             <div className={styles.blueprintLayout}>
               <div className={styles.blueprintCopy}>
-                <span className={styles.eyebrow}>Blueprint Files</span>
-                <h2>Files, videos, and structured detail blocks belong in the same flow.</h2>
-                <p>
-                  Aircraft products need supporting files, build guidance, video context, and compatible
-                  hardware presented in the same buying flow so customers do not get lost between pages.
-                </p>
+                <span className={styles.eyebrow}>{content.blueprint.eyebrow}</span>
+                <h2>{content.blueprint.title}</h2>
+                <p>{content.blueprint.description}</p>
               </div>
               <div className={styles.blueprintCard}>
                 <div className={styles.blueprintIcon}><PlayCircle size={22} /></div>
-                <h3>Presentation-ready content blocks</h3>
-                <p>Use this section later for product videos, print notes, assembly guidance, and blueprint explanations.</p>
+                <h3>{content.blueprint.cardTitle}</h3>
+                <p>{content.blueprint.cardDescription}</p>
               </div>
             </div>
           </div>
         </section>
+        )}
       </div>
     </>
   )

@@ -424,6 +424,8 @@ export default function ProductPage() {
   const { addItem, isInCart } = useCart()
   const { formatFromBase, convertFromBase, currency } = useCurrency()
   const template = templateContent ?? getDefaultSiteContent('product_page_template')
+  const templateVisibility = template.visibility
+  const templateLabels = template.labels
   const [qty, setQty] = useState(1)
   const [selectedElectronics, setSelectedElectronics] = useState<Set<string>>(new Set())
   const [selectedImage, setSelectedImage] = useState('')
@@ -552,7 +554,11 @@ export default function ProductPage() {
   const productAdditiveType = getProductAdditiveType(displayProduct)
   const productAdditiveLabel = getAdditiveLabel(productAdditiveType)
   const productOriginLabel = getOriginLabel(displayProduct.product_origin)
-  const productTrustLine = `${productOriginLabel} | Curated and supplied by Wingxtra${displayProduct.warranty_notes ? ` | ${displayProduct.warranty_notes}` : ''}`
+  const trustSuffix = templateLabels.trustSuffix.trim()
+  const trustConnector = templateLabels.trustConnector.trim() || '|'
+  const productTrustLine = [productOriginLabel, trustSuffix, displayProduct.warranty_notes]
+    .filter(Boolean)
+    .join(` ${trustConnector} `)
   const blueprintFacts = [
     digital ? `File formats: ${fileFormats || 'STL and build notes'}` : `Fulfillment: ${getFulfillmentLabel(displayProduct.fulfillment_type)}`,
     digital ? 'Blueprint-style file packs are delivered after confirmed payment.' : `Shipping window: ${shippingWindow || 'Based on stock and production readiness'}.`,
@@ -661,7 +667,7 @@ export default function ProductPage() {
                 {productAdditiveLabel && <span>{productAdditiveLabel}</span>}
                 {isNewArrival(displayProduct) && <span>New arrival</span>}
               </div>
-              <p className={styles.trustLine}>{productTrustLine}</p>
+              {templateVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
 
               <div className={styles.aircraftHeroFacts}>
                 {factCards.slice(0, 4).map(item => (
@@ -679,7 +685,7 @@ export default function ProductPage() {
                 </div>
                 <Button size="lg" onClick={handleAddToCart} disabled={outOfStock}>
                   <ShoppingCart size={18} />
-                  {outOfStock ? 'Out of stock' : inCart ? 'Add another' : 'Add to cart'}
+                  {outOfStock ? templateLabels.outOfStockLabel : inCart ? templateLabels.addAgainLabel : templateLabels.addToCartLabel}
                 </Button>
               </div>
 
@@ -707,6 +713,7 @@ export default function ProductPage() {
             <a href="#shopping-list">Parts</a>
           </nav>
 
+          {templateVisibility.templateGuide && (
           <section className={styles.templateGuideSection}>
             <div className="container">
               <div className={styles.templateGuideLayout}>
@@ -726,11 +733,13 @@ export default function ProductPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {templateVisibility.detailCards && (
           <section id="overview" className={styles.aircraftBand}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
-                <span className={styles.aircraftEyebrow}>Overview</span>
+                <span className={styles.aircraftEyebrow}>{templateLabels.overviewEyebrow}</span>
                 <h2>Built to understand before you buy.</h2>
                 <p>{audienceNotes.forBuilders}</p>
               </div>
@@ -754,11 +763,13 @@ export default function ProductPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {templateVisibility.video && (
           <section id="video" className={styles.aircraftVideoSection}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
-                <span className={styles.aircraftEyebrow}>Build video</span>
+                <span className={styles.aircraftEyebrow}>{templateLabels.videoEyebrow}</span>
                 <h2>{productVideoTitle}</h2>
                 <p>{productVideoDescription}</p>
               </div>
@@ -793,13 +804,15 @@ export default function ProductPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {templateVisibility.dossier && (
           <section id="files" className={styles.aircraftBand}>
             <div className="container">
               <div className={styles.aircraftFileGrid}>
                 <article>
                   <Download size={28} />
-                  <h2>Files and fulfillment</h2>
+                  <h2>{templateLabels.filesEyebrow}</h2>
                   <p>{fileSummary}</p>
                 </article>
                 <div>
@@ -829,11 +842,13 @@ export default function ProductPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {templateVisibility.technicalSpecs && (
           <section id="specs" className={styles.aircraftSpecSection}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
-                <span className={styles.aircraftEyebrow}>Technical data</span>
+                <span className={styles.aircraftEyebrow}>{templateLabels.technicalDataEyebrow}</span>
                 <h2>Specifications</h2>
               </div>
               <div className={styles.aircraftSpecTable}>
@@ -846,11 +861,13 @@ export default function ProductPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {templateVisibility.bundles && (
           <section id="shopping-list" className={styles.aircraftRecommendedSection}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
-                <span className={styles.aircraftEyebrow}>Shopping list</span>
+                <span className={styles.aircraftEyebrow}>{templateLabels.shoppingListEyebrow}</span>
                 <h2>Recommended parts</h2>
                 <p>Keep the buyer moving from aircraft choice to the parts needed for a complete build.</p>
               </div>
@@ -881,6 +898,7 @@ export default function ProductPage() {
               )}
             </div>
           </section>
+          )}
         </div>
       </>
     )
@@ -966,11 +984,13 @@ export default function ProductPage() {
                   ))}
                 </div>
               )}
-              <div className={styles.assuranceBar}>
-                <div><ShieldCheck size={16} /> Secure checkout</div>
-                <div><BadgeCheck size={16} /> Builder-first guidance</div>
-                <div><Layers3 size={16} /> Compatible system parts</div>
-              </div>
+              {templateVisibility.assuranceBar && (
+                <div className={styles.assuranceBar}>
+                  <div><ShieldCheck size={16} /> {templateLabels.assuranceOne}</div>
+                  <div><BadgeCheck size={16} /> {templateLabels.assuranceTwo}</div>
+                  <div><Layers3 size={16} /> {templateLabels.assuranceThree}</div>
+                </div>
+              )}
             </section>
 
             <section className={styles.summaryPanel}>
@@ -990,7 +1010,7 @@ export default function ProductPage() {
 
               <h1 className={styles.title}>{displayProduct.name}</h1>
               <p className={styles.description}>{displayProduct.description}</p>
-              <p className={styles.trustLine}>{productTrustLine}</p>
+              {templateVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
 
               <div className={styles.priceStack}>
                 <p className={styles.price}>{formatFromBase(effectivePrice)}</p>
@@ -1011,6 +1031,7 @@ export default function ProductPage() {
                 ))}
               </div>
 
+              {templateVisibility.beforeYouBuy && (
               <div className={styles.beforeYouBuy}>
                 <div className={styles.beforeYouBuyHeader}>
                   <CircleHelp size={16} />
@@ -1023,6 +1044,7 @@ export default function ProductPage() {
                   <li>{digital ? `Files included: ${fileFormats || 'STL and support documents'}.` : `Shipping window: ${shippingWindow || 'Based on stock and production readiness'}.`}</li>
                 </ul>
               </div>
+              )}
 
               {!digital && (
                 <div className={styles.stockRow}>
@@ -1052,7 +1074,7 @@ export default function ProductPage() {
 
               <Button size="lg" fullWidth onClick={handleAddToCart} disabled={outOfStock || (inCart && !selectedElectronics.size)}>
                 <ShoppingCart size={18} />
-                {inCart ? 'Add Again' : 'Add to Cart'}
+                {outOfStock ? templateLabels.outOfStockLabel : inCart ? templateLabels.addAgainLabel : templateLabels.addToCartLabel}
               </Button>
 
               <div className={styles.deliveryPanel}>
@@ -1070,6 +1092,7 @@ export default function ProductPage() {
             </section>
           </div>
 
+          {templateVisibility.templateGuide && (
           <section className={styles.templateGuideSection}>
             <div className={styles.templateGuideLayout}>
               <div className={styles.templateGuideCopy}>
@@ -1087,10 +1110,12 @@ export default function ProductPage() {
               </div>
             </div>
           </section>
+          )}
 
+          {templateVisibility.dossier && (
           <section className={styles.dossierSection}>
             <article className={styles.dossierStory}>
-              <span className={styles.dossierEyebrow}>Product story</span>
+              <span className={styles.dossierEyebrow}>{templateLabels.productStoryEyebrow}</span>
               <h2>{productStoryTitle}</h2>
               {getParagraphs(productStoryText).map(paragraph => (
                 <p key={paragraph}>{paragraph}</p>
@@ -1098,7 +1123,7 @@ export default function ProductPage() {
             </article>
 
             <article className={styles.dossierBlueprint}>
-              <span className={styles.dossierEyebrow}>Blueprint files</span>
+              <span className={styles.dossierEyebrow}>{templateLabels.blueprintEyebrow}</span>
               <h2>{blueprintTitle}</h2>
               <ul className={styles.dossierList}>
                 {blueprintFacts.map(item => (
@@ -1123,10 +1148,12 @@ export default function ProductPage() {
               )}
             </article>
           </section>
+          )}
 
+          {templateVisibility.video && (
           <section className={styles.productVideoSection}>
             <div className={styles.productVideoIntro}>
-              <span className={styles.dossierEyebrow}>Build video</span>
+              <span className={styles.dossierEyebrow}>{templateLabels.videoEyebrow}</span>
               <h2>{productVideoTitle}</h2>
               <p>{productVideoDescription}</p>
             </div>
@@ -1160,7 +1187,9 @@ export default function ProductPage() {
               )}
             </div>
           </section>
+          )}
 
+          {templateVisibility.detailCards && (
           <section className={styles.contentGrid}>
             <article className={styles.contentCard}>
               <div className={styles.sectionHeader}>
@@ -1222,8 +1251,9 @@ export default function ProductPage() {
               </ul>
             </article>
           </section>
+          )}
 
-          {showTechnicalSpecs && (
+          {templateVisibility.technicalSpecs && showTechnicalSpecs && (
             <section className={styles.specSection}>
               <div className={styles.specHeader}>
                 <div>
@@ -1242,6 +1272,7 @@ export default function ProductPage() {
             </section>
           )}
 
+          {templateVisibility.reviews && (
           <section className={styles.reviewSection}>
             <div className={styles.reviewSectionHeader}>
               <div>
@@ -1269,12 +1300,12 @@ export default function ProductPage() {
                     <p className={styles.reviewBody}>{review.body || 'Great product and buying experience.'}</p>
                   </article>
                 )) : (
-                  <div className={styles.emptyReviews}>No reviews yet. Be the first to leave one.</div>
+                  <div className={styles.emptyReviews}>{templateLabels.emptyReviews}</div>
                 )}
               </div>
 
               <div className={styles.reviewFormCard}>
-                <h3>{ownReview ? 'Update your review' : 'Write a review'}</h3>
+                <h3>{ownReview ? templateLabels.reviewFormTitleUpdate : templateLabels.reviewFormTitleCreate}</h3>
                 {user ? (
                   <>
                     <div className={styles.ratingPicker}>
@@ -1307,17 +1338,18 @@ export default function ProductPage() {
                       onChange={event => setReviewForm(current => ({ ...current, body: event.target.value }))}
                     />
                     <Button type="button" onClick={() => submitReview.mutate()} loading={submitReview.isPending}>
-                      {ownReview ? 'Update Review' : 'Submit Review'}
+                      {ownReview ? templateLabels.reviewSubmitUpdate : templateLabels.reviewSubmitCreate}
                     </Button>
                   </>
                 ) : (
-                  <p className={styles.reviewLoginNote}>Sign in to leave a review for this product.</p>
+                  <p className={styles.reviewLoginNote}>{templateLabels.signInReviewMessage}</p>
                 )}
               </div>
             </div>
           </section>
+          )}
 
-          {bundleItems && bundleItems.length > 0 && (
+          {templateVisibility.bundles && bundleItems && bundleItems.length > 0 && (
             <section className={styles.bundleSection}>
               <div className={styles.bundleHeader}>
                 <div>

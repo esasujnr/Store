@@ -69,6 +69,63 @@
   border-color: rgba(37, 214, 111, 0.42);
 }
 
+.featureRail {
+  padding: 0 0 42px;
+  margin-top: -24px;
+  position: relative;
+  z-index: 2;
+}
+
+.featureRailGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.featureRailCard {
+  min-height: 190px;
+  padding: 22px;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(135deg, rgba(37, 214, 111, 0.1), transparent 44%),
+    rgba(11, 24, 14, 0.96);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+  text-decoration: none;
+}
+
+.featureRailCard span {
+  color: #57f58e;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.featureRailCard strong {
+  font-size: 1.2rem;
+  line-height: 1.05;
+}
+
+.featureRailCard p {
+  margin: 0;
+  color: rgba(239, 249, 242, 0.68);
+  line-height: 1.65;
+}
+
+.featureRailCard svg {
+  margin-top: auto;
+  color: #57f58e;
+}
+
+.featureRailCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(37, 214, 111, 0.42);
+}
+
 .filters {
   position: relative;
   z-index: 2;
@@ -205,6 +262,10 @@
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .featureRailGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -224,6 +285,10 @@
 
   .filters {
     margin-top: -18px;
+  }
+
+  .featureRail {
+    margin-top: 0;
   }
 
   .catalogIntro {

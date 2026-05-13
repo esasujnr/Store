@@ -155,6 +155,48 @@ function LinkFields({ label, value, onChange }: { label: string; value: LinkCont
   )
 }
 
+function LinksEditor({
+  label,
+  description,
+  items,
+  onChange,
+}: {
+  label: string
+  description: string
+  items: LinkContent[]
+  onChange: (next: LinkContent[]) => void
+}) {
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionCardHeader}>
+        <div>
+          <h3>{label}</h3>
+          <p>{description}</p>
+        </div>
+        <button type="button" className={styles.subtleBtn} onClick={() => onChange([...items, { label: 'New link', href: '/shop' }])}>
+          <Plus size={14} /> Add
+        </button>
+      </div>
+      <div className={styles.stack}>
+        {items.map((item, index) => (
+          <div key={`${label}-${index}`} className={styles.editorCard}>
+            <div className={styles.editorHeader}>
+              <h4>Link {index + 1}</h4>
+              <button type="button" className={styles.iconBtn} onClick={() => onChange(removeItem(items, index))}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <div className={styles.twoColumn}>
+              <Field label="Label" value={item.label} onChange={next => onChange(replaceItem(items, index, { ...item, label: next }))} />
+              <Field label="Link" value={item.href} onChange={next => onChange(replaceItem(items, index, { ...item, href: next }))} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function HighlightsEditor({
   label,
   items,
@@ -816,6 +858,22 @@ function DronesContentEditor({ content, onChange }: { content: DronesPageContent
       </div>
 
       <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}>
+          <div><h3>Drones page visibility</h3><p>Hide unfinished sections while drone assets, videos, and real platform content are still being prepared.</p></div>
+        </div>
+        <div className={styles.toggleGrid}>
+          {Object.entries(content.visibility).map(([key, value]) => (
+            <ToggleField
+              key={key}
+              label={key.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase())}
+              checked={value}
+              onChange={next => onChange({ ...content, visibility: { ...content.visibility, [key]: next } })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Drones page hero</h3><p>Manage the top introduction for the dedicated airframe collection page.</p></div></div>
         <div className={styles.twoColumn}>
           <Field label="Eyebrow" value={content.hero.eyebrow} onChange={next => onChange({ ...content, hero: { ...content.hero, eyebrow: next } })} />
@@ -829,6 +887,64 @@ function DronesContentEditor({ content, onChange }: { content: DronesPageContent
       </div>
 
       <HighlightsEditor label="Hero Stats" items={content.hero.stats} onChange={next => onChange({ ...content, hero: { ...content.hero, stats: next } })} />
+
+      <LinksEditor
+        label="Quick navigation"
+        description="Edit the short pills under the hero that move buyers to the right aircraft, files, parts, or shopping-list flow."
+        items={content.quickNav}
+        onChange={next => onChange({ ...content, quickNav: next })}
+      />
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Video section</h3><p>Control the embedded video frame shown on the drones page.</p></div></div>
+        <div className={styles.twoColumn}>
+          <Field label="Video title" value={content.video.title} onChange={next => onChange({ ...content, video: { ...content.video, title: next } })} />
+          <Field label="Play button label" value={content.video.playLabel} onChange={next => onChange({ ...content, video: { ...content.video, playLabel: next } })} />
+        </div>
+        <Field label="Video URL" value={content.video.url} onChange={next => onChange({ ...content, video: { ...content.video, url: next } })} />
+        <Field label="Poster fallback image URL" value={content.video.posterFallback} onChange={next => onChange({ ...content, video: { ...content.video, posterFallback: next } })} />
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Story heading</h3><p>Control the educational story block heading.</p></div></div>
+        <Field label="Title" value={content.story.title} onChange={next => onChange({ ...content, story: { ...content.story, title: next } })} />
+      </div>
+
+      <PointsEditor
+        label="Story blocks"
+        description="These cards explain the aircraft buying logic in plain language."
+        items={content.story.blocks}
+        onChange={next => onChange({ ...content, story: { ...content.story, blocks: next } })}
+      />
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Featured platform section</h3><p>Edit the copy beside the first featured drone product.</p></div></div>
+        <div className={styles.twoColumn}>
+          <Field label="Eyebrow" value={content.featured.eyebrow} onChange={next => onChange({ ...content, featured: { ...content.featured, eyebrow: next } })} />
+          <Field label="Link label" value={content.featured.linkLabel} onChange={next => onChange({ ...content, featured: { ...content.featured, linkLabel: next } })} />
+        </div>
+        <Field label="Fallback title" value={content.featured.titleFallback} onChange={next => onChange({ ...content, featured: { ...content.featured, titleFallback: next } })} />
+        <TextareaField label="Description" rows={4} value={content.featured.description} onChange={next => onChange({ ...content, featured: { ...content.featured, description: next } })} />
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Aircraft catalog section</h3><p>Control the heading and number of aircraft cards shown.</p></div></div>
+        <div className={styles.twoColumn}>
+          <Field label="Catalog title" value={content.catalog.title} onChange={next => onChange({ ...content, catalog: { ...content.catalog, title: next } })} />
+          <Field label="Maximum items" value={content.catalog.maxItems} onChange={next => onChange({ ...content, catalog: { ...content.catalog, maxItems: next } })} />
+        </div>
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Blueprint section</h3><p>Control the closing blueprint/video/file explanation block.</p></div></div>
+        <div className={styles.twoColumn}>
+          <Field label="Eyebrow" value={content.blueprint.eyebrow} onChange={next => onChange({ ...content, blueprint: { ...content.blueprint, eyebrow: next } })} />
+          <Field label="Card title" value={content.blueprint.cardTitle} onChange={next => onChange({ ...content, blueprint: { ...content.blueprint, cardTitle: next } })} />
+        </div>
+        <Field label="Title" value={content.blueprint.title} onChange={next => onChange({ ...content, blueprint: { ...content.blueprint, title: next } })} />
+        <TextareaField label="Description" rows={4} value={content.blueprint.description} onChange={next => onChange({ ...content, blueprint: { ...content.blueprint, description: next } })} />
+        <TextareaField label="Card description" rows={3} value={content.blueprint.cardDescription} onChange={next => onChange({ ...content, blueprint: { ...content.blueprint, cardDescription: next } })} />
+      </div>
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Filter section intro</h3><p>Control the small section introducing the drone filters.</p></div></div>
@@ -868,6 +984,22 @@ function ShopContentEditor({ content, onChange }: { content: ShopPageContent; on
       </div>
 
       <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}>
+          <div><h3>Shop page visibility</h3><p>Switch off catalog sections that are not ready yet without removing their content.</p></div>
+        </div>
+        <div className={styles.toggleGrid}>
+          {Object.entries(content.visibility).map(([key, value]) => (
+            <ToggleField
+              key={key}
+              label={key.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase())}
+              checked={value}
+              onChange={next => onChange({ ...content, visibility: { ...content.visibility, [key]: next } })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Shop page hero</h3><p>Edit the broad catalog messaging that frames the store before people filter down.</p></div></div>
         <div className={styles.twoColumn}>
           <Field label="Eyebrow" value={content.hero.eyebrow} onChange={next => onChange({ ...content, hero: { ...content.hero, eyebrow: next } })} />
@@ -900,6 +1032,25 @@ function ShopContentEditor({ content, onChange }: { content: ShopPageContent; on
       </div>
 
       <HighlightsEditor label="Hero Stats" items={content.hero.stats} onChange={next => onChange({ ...content, hero: { ...content.hero, stats: next } })} />
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Shop controls</h3><p>Control search, result summary, empty state, and filter reset labels.</p></div></div>
+        <div className={styles.twoColumn}>
+          <Field label="Search placeholder" value={content.controls.searchPlaceholder} onChange={next => onChange({ ...content, controls: { ...content.controls, searchPlaceholder: next } })} />
+          <Field label="Result label" value={content.controls.resultLabel} onChange={next => onChange({ ...content, controls: { ...content.controls, resultLabel: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Clear filters label" value={content.controls.clearFiltersLabel} onChange={next => onChange({ ...content, controls: { ...content.controls, clearFiltersLabel: next } })} />
+          <Field label="Empty state" value={content.controls.emptyState} onChange={next => onChange({ ...content, controls: { ...content.controls, emptyState: next } })} />
+        </div>
+      </div>
+
+      <LinksEditor
+        label="Shop quick links"
+        description="Edit the pill links shown under the shop hero."
+        items={content.controls.quickLinks}
+        onChange={next => onChange({ ...content, controls: { ...content.controls, quickLinks: next } })}
+      />
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
@@ -1024,6 +1175,7 @@ function GlobalContentEditor({ content, onChange }: { content: GlobalStoreConten
 
 function ProductTemplateEditor({ content, onChange }: { content: ProductPageTemplateContent; onChange: (next: ProductPageTemplateContent) => void }) {
   const headings = content.headings
+  const labels = content.labels
   return (
     <div className={styles.stack}>
       <div className={styles.sectionCard}>
@@ -1032,6 +1184,63 @@ function ProductTemplateEditor({ content, onChange }: { content: ProductPageTemp
           <Field label="Title template" value={content.seo.titleTemplate} onChange={next => onChange({ ...content, seo: { ...content.seo, titleTemplate: next } })} />
           <Field label="Description template" value={content.seo.descriptionTemplate} onChange={next => onChange({ ...content, seo: { ...content.seo, descriptionTemplate: next } })} />
         </div>
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}>
+          <div><h3>Product page visibility</h3><p>Toggle reusable product-detail sections across the whole store.</p></div>
+        </div>
+        <div className={styles.toggleGrid}>
+          {Object.entries(content.visibility).map(([key, value]) => (
+            <ToggleField
+              key={key}
+              label={key.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase())}
+              checked={value}
+              onChange={next => onChange({ ...content, visibility: { ...content.visibility, [key]: next } })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionCardHeader}><div><h3>Reusable product labels</h3><p>Change repeated trust lines, badges, video labels, review copy, and add-to-cart wording.</p></div></div>
+        <div className={styles.twoColumn}>
+          <Field label="Trust connector" value={labels.trustConnector} onChange={next => onChange({ ...content, labels: { ...labels, trustConnector: next } })} />
+          <Field label="Trust suffix" value={labels.trustSuffix} onChange={next => onChange({ ...content, labels: { ...labels, trustSuffix: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Assurance label 1" value={labels.assuranceOne} onChange={next => onChange({ ...content, labels: { ...labels, assuranceOne: next } })} />
+          <Field label="Assurance label 2" value={labels.assuranceTwo} onChange={next => onChange({ ...content, labels: { ...labels, assuranceTwo: next } })} />
+        </div>
+        <Field label="Assurance label 3" value={labels.assuranceThree} onChange={next => onChange({ ...content, labels: { ...labels, assuranceThree: next } })} />
+        <div className={styles.twoColumn}>
+          <Field label="Video eyebrow" value={labels.videoEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, videoEyebrow: next } })} />
+          <Field label="Product story eyebrow" value={labels.productStoryEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, productStoryEyebrow: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Blueprint eyebrow" value={labels.blueprintEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, blueprintEyebrow: next } })} />
+          <Field label="Overview eyebrow" value={labels.overviewEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, overviewEyebrow: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Files eyebrow" value={labels.filesEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, filesEyebrow: next } })} />
+          <Field label="Technical data eyebrow" value={labels.technicalDataEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, technicalDataEyebrow: next } })} />
+        </div>
+        <Field label="Shopping list eyebrow" value={labels.shoppingListEyebrow} onChange={next => onChange({ ...content, labels: { ...labels, shoppingListEyebrow: next } })} />
+        <div className={styles.twoColumn}>
+          <Field label="Add to cart label" value={labels.addToCartLabel} onChange={next => onChange({ ...content, labels: { ...labels, addToCartLabel: next } })} />
+          <Field label="Add again label" value={labels.addAgainLabel} onChange={next => onChange({ ...content, labels: { ...labels, addAgainLabel: next } })} />
+        </div>
+        <Field label="Out of stock label" value={labels.outOfStockLabel} onChange={next => onChange({ ...content, labels: { ...labels, outOfStockLabel: next } })} />
+        <div className={styles.twoColumn}>
+          <Field label="Review form title" value={labels.reviewFormTitleCreate} onChange={next => onChange({ ...content, labels: { ...labels, reviewFormTitleCreate: next } })} />
+          <Field label="Review update title" value={labels.reviewFormTitleUpdate} onChange={next => onChange({ ...content, labels: { ...labels, reviewFormTitleUpdate: next } })} />
+        </div>
+        <div className={styles.twoColumn}>
+          <Field label="Review submit label" value={labels.reviewSubmitCreate} onChange={next => onChange({ ...content, labels: { ...labels, reviewSubmitCreate: next } })} />
+          <Field label="Review update submit label" value={labels.reviewSubmitUpdate} onChange={next => onChange({ ...content, labels: { ...labels, reviewSubmitUpdate: next } })} />
+        </div>
+        <TextareaField label="Empty reviews message" rows={3} value={labels.emptyReviews} onChange={next => onChange({ ...content, labels: { ...labels, emptyReviews: next } })} />
+        <TextareaField label="Sign-in review message" rows={3} value={labels.signInReviewMessage} onChange={next => onChange({ ...content, labels: { ...labels, signInReviewMessage: next } })} />
       </div>
 
       <div className={styles.sectionCard}>
