@@ -1,142 +1,62 @@
-import { useState } from 'react'
-import { Package, Download, ChevronDown, ChevronUp } from 'lucide-react'
+﻿import { useState } from 'react'
+import { Save, Truck } from 'lucide-react'
+import toast from 'react-hot-toast'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { useAdminOrders, useUpdateOrderShipping } from '@/hooks/useOrders'
+import type { Order, OrderStatus, ShippingStatus } from '@/lib/database.types'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import type { Order } from '@/lib/database.types'
-import toast from 'react-hot-toast'
 import styles from './AdminOrders.module.css'
 
-const SHIPPING_STATUSES = ['not_required', 'pending', 'processing', 'shipped', 'delivered']
+const statusOptions: OrderStatus[] = ['pending', 'paid', 'processing', 'completed', 'cancelled', 'refunded']
+const shippingOptions: ShippingStatus[] = ['not_required', 'pending', 'processing', 'ready_to_ship', 'shipped', 'delivered', 'returned']
 
-export default function AdminOrders() {
-  const { data: orders, isLoading } = useAdminOrders()
-  const updateShipping = useUpdateOrderShipping()
-  const [expanded, setExpanded] = useState<string | null>(null)
-  const [editTracking, setEditTracking] = useState<{ [id: string]: string }>({})
+function OrderCard({ order }: { order: Order }) {
+  const updateOrder = useUpdateOrderShipping()
+  const [status, setStatus] = useState<OrderStatus>(order.status)
+  const [shippingStatus, setShippingStatus] = useState<ShippingStatus>(order.shipping_status)
+  const [trackingNumber, setTrackingNumber] = useState(order.tracking_number || '')
+  const [shippingCourier, setShippingCourier] = useState(order.shipping_courier || '')
+  const [trackingUrl, setTrackingUrl] = useState(order.tracking_url || '')
 
-  function handleShippingUpdate(order: Order, newStatus: string) {
-    updateShipping.mutate(
-      {
-        orderId: order.id,
-        shippingStatus: newStatus,
-        trackingNumber: editTracking[order.id] ?? order.tracking_number,
-      },
-      {
-        onSuccess: () => toast.success('Shipping status updated'),
-        onError: () => toast.error('Failed to update'),
-      }
-    )
+  async function save() {
+    try {
+      await updateOrder.mutateAsync({ orderId: order.id, status, shippingStatus, trackingNumber, shippingCourier, trackingUrl })
+      toast.success('Order updated')
+    } catch (error) {
+      console.error(error)
+      toast.error('Could not update order')
+    }
   }
 
   return (
+    <article className={styles.orderCard}>
+      <div className={styles.orderTop}>
+        <div><strong>#{order.id.slice(0, 8).toUpperCase()}</strong><span>{formatDate(order.created_at)}</span></div>
+        <div className={styles.amount}>{formatCurrency(order.total_amount, order.currency)}</div>
+      </div>
+      <div className={styles.items}>{order.order_items?.map(item => <span key={item.id}>{item.product?.name || 'Product'} x {item.quantity}</span>)}</div>
+      <div className={styles.controls}>
+        <label>Status<select value={status} onChange={e => setStatus(e.target.value as OrderStatus)}>{statusOptions.map(value => <option key={value}>{value}</option>)}</select></label>
+        <label>Shipping<select value={shippingStatus} onChange={e => setShippingStatus(e.target.value as ShippingStatus)}>{shippingOptions.map(value => <option key={value}>{value}</option>)}</select></label>
+        <label>Courier<input value={shippingCourier} onChange={e => setShippingCourier(e.target.value)} placeholder="DHL, FedEx, local courier" /></label>
+        <label>Tracking #<input value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} /></label>
+        <label>Tracking URL<input value={trackingUrl} onChange={e => setTrackingUrl(e.target.value)} /></label>
+      </div>
+      <Button onClick={save} loading={updateOrder.isPending}><Save size={15} /> Save and notify if needed</Button>
+    </article>
+  )
+}
+
+export default function AdminOrders() {
+  const { data: orders, isLoading } = useAdminOrders()
+  return (
     <>
-      <SEO title="Admin — Orders" noIndex />
-      <div>
-        <h1 className={styles.title}>Orders</h1>
-
-        {isLoading ? (
-          <p className={styles.loading}>Loading…</p>
-        ) : (
-          <div className={styles.list}>
-            {orders?.map(order => (
-              <div key={order.id} className={styles.order}>
-                <button
-                  className={styles.orderHeader}
-                  onClick={() => setExpanded(e => e === order.id ? null : order.id)}
-                >
-                  <div className={styles.orderMeta}>
-                    <span className={styles.orderId}>#{order.id.slice(0, 8).toUpperCase()}</span>
-                    <span className={styles.orderDate}>{formatDate(order.created_at)}</span>
-                    <div className={styles.typePills}>
-                      {order.has_digital && <span className={styles.pill}>
-                        <Download size={11} /> Digital
-                      </span>}
-                      {order.has_physical && <span className={styles.pill}>
-                        <Package size={11} /> Physical
-                      </span>}
-                    </div>
-                  </div>
-                  <div className={styles.orderRight}>
-                    <span className={`${styles.badge} ${styles[`badge_${order.status}`]}`}>
-                      {order.status}
-                    </span>
-                    <span className={styles.amount}>{formatCurrency(order.total_amount)}</span>
-                    {expanded === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                </button>
-
-                {expanded === order.id && (
-                  <div className={styles.orderBody}>
-                    {/* Items */}
-                    <div className={styles.items}>
-                      {order.order_items?.map(item => (
-                        <div key={item.id} className={styles.item}>
-                          <img
-                            src={item.product?.image_url || 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=80'}
-                            alt={item.product?.name}
-                            className={styles.itemImg}
-                          />
-                          <div>
-                            <p className={styles.itemName}>{item.product?.name}</p>
-                            <p className={styles.itemMeta}>
-                              {item.fulfillment_type.toUpperCase()} · Qty {item.quantity}
-                            </p>
-                          </div>
-                          <span className={styles.itemPrice}>
-                            {formatCurrency(item.unit_price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Shipping controls */}
-                    {order.has_physical && (
-                      <div className={styles.shippingPanel}>
-                        <h3>Shipping Status</h3>
-                        <div className={styles.shippingControls}>
-                          <select
-                            className={styles.select}
-                            value={order.shipping_status}
-                            onChange={e => handleShippingUpdate(order, e.target.value)}
-                          >
-                            {SHIPPING_STATUSES.map(s => (
-                              <option key={s} value={s}>{s.replace('_', ' ')}</option>
-                            ))}
-                          </select>
-                          <input
-                            type="text"
-                            className={styles.trackingInput}
-                            placeholder="Tracking number"
-                            value={editTracking[order.id] ?? order.tracking_number}
-                            onChange={e => setEditTracking(t => ({ ...t, [order.id]: e.target.value }))}
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleShippingUpdate(order, order.shipping_status)}
-                            loading={updateShipping.isPending}
-                          >
-                            Save
-                          </Button>
-                        </div>
-
-                        {order.shipping_address && (
-                          <div className={styles.shipAddr}>
-                            <strong>Ship to:</strong>{' '}
-                            {(order.shipping_address as { address_line1?: string; city?: string; state?: string }).address_line1},{' '}
-                            {(order.shipping_address as { city?: string }).city},{' '}
-                            {(order.shipping_address as { state?: string }).state}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+      <SEO title="Admin Orders" noIndex />
+      <div className={styles.page}>
+        <section className={styles.header}><span>Operations</span><h1>Orders</h1><p>Update shipping progress, tracking, and payment state. Shipment changes send customer notifications automatically.</p></section>
+        {isLoading ? <LoadingSpinner /> : !orders?.length ? <div className={styles.empty}><Truck size={36} /> No orders yet.</div> : <div className={styles.list}>{orders.map(order => <OrderCard key={order.id} order={order} />)}</div>}
       </div>
     </>
   )

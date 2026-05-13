@@ -23,10 +23,10 @@ export default function RegisterPage() {
       return
     }
     setLoading(true)
-    const { error } = await signUp(email, password, fullName)
+    const { error: signUpError } = await signUp(email, password, fullName)
     setLoading(false)
-    if (error) {
-      setError(error.message)
+    if (signUpError) {
+      setError(signUpError.message)
     } else {
       navigate('/')
     }
@@ -37,7 +37,7 @@ export default function RegisterPage() {
       <SEO title="Create Account" url="/register" noIndex />
       <div className={styles.page}>
         <div className={styles.card}>
-          <div className={styles.logo}>▲ VOLANT</div>
+          <div className={styles.logo}>Wingxtra Store</div>
           <h1 className={styles.title}>Create account</h1>
           <p className={styles.subtitle}>Start your build today</p>
 

@@ -1,0 +1,253 @@
+﻿.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #050805 0%, #08120b 44%, #050805 100%);
+  color: #f7fff9;
+  padding-bottom: 110px;
+}
+
+.hero {
+  position: relative;
+  min-height: 520px;
+  overflow: hidden;
+  display: grid;
+  align-items: end;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.heroImage,
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.heroImage {
+  object-fit: cover;
+  opacity: 0.72;
+}
+
+.heroOverlay {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 5, 0.95) 0%, rgba(5, 8, 5, 0.68) 45%, rgba(5, 8, 5, 0.32) 100%),
+    radial-gradient(circle at 78% 28%, rgba(37, 214, 111, 0.26), transparent 36%);
+}
+
+.hero :global(.container) {
+  position: relative;
+  z-index: 1;
+  padding-top: 78px;
+  padding-bottom: 62px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(247, 255, 249, 0.78);
+  font-weight: 900;
+  margin-bottom: 52px;
+}
+
+.back:hover,
+.brandHead a:hover,
+.collectionNav a:hover {
+  color: #33ee80;
+}
+
+.heroCopy {
+  width: min(860px, 100%);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 16px;
+  border: 1px solid rgba(37, 214, 111, 0.82);
+  border-radius: 999px;
+  color: #5cf790;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 980px;
+  margin-top: 20px;
+  color: #ffffff;
+  font-size: clamp(3rem, 7vw, 6.8rem);
+  line-height: 0.92;
+  letter-spacing: -0.07em;
+}
+
+.hero p {
+  max-width: 760px;
+  margin-top: 22px;
+  color: rgba(240, 250, 243, 0.78);
+  font-size: 1.08rem;
+  line-height: 1.75;
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 720px;
+  margin-top: 34px;
+}
+
+.heroStats div {
+  min-height: 96px;
+  padding: 18px;
+  display: grid;
+  gap: 5px;
+  border-left: 2px solid #25d66f;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.heroStats svg {
+  color: #54ef8f;
+}
+
+.heroStats strong {
+  color: #ffffff;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.heroStats span {
+  color: rgba(240, 250, 243, 0.68);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.collectionNav {
+  margin: -28px 0 38px;
+  position: relative;
+  z-index: 2;
+  padding: 14px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(9, 20, 12, 0.94);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.collectionNav a {
+  flex: 0 0 auto;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(247, 255, 249, 0.78);
+  font-weight: 900;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  align-items: stretch;
+}
+
+.brandStack {
+  display: grid;
+  gap: 44px;
+  margin-top: -24px;
+  position: relative;
+  z-index: 2;
+}
+
+.brandSection {
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+}
+
+.brandHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.brandHead h2 {
+  margin-top: 10px;
+  color: #ffffff;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.brandHead a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(247, 255, 249, 0.78);
+  font-weight: 900;
+}
+
+.empty {
+  padding: 38px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  color: rgba(247, 255, 249, 0.7);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+@media (max-width: 1050px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    min-height: auto;
+  }
+
+  .hero :global(.container) {
+    padding-top: 48px;
+    padding-bottom: 46px;
+  }
+
+  .back {
+    margin-bottom: 32px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.45rem, 14vw, 4.4rem);
+  }
+
+  .heroStats,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStats div {
+    min-height: auto;
+  }
+
+  .collectionNav {
+    margin-top: -18px;
+    padding: 10px;
+  }
+
+  .brandSection {
+    padding: 20px;
+  }
+
+  .brandHead {
+    display: grid;
+  }
+}

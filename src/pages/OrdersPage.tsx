@@ -66,7 +66,7 @@ export default function OrdersPage() {
                     <span className={`${styles.status} ${styles[STATUS_COLORS[order.status] || 'status-pending']}`}>
                       {order.status}
                     </span>
-                    <span className={styles.amount}>{formatCurrency(order.total_amount)}</span>
+                    <span className={styles.amount}>{formatCurrency(order.total_amount, order.currency)}</span>
                     <ChevronRight size={16} className={styles.arrow} />
                   </div>
                 </Link>

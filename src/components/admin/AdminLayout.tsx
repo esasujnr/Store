@@ -1,46 +1,41 @@
-import { Outlet, NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Package, ShoppingCart, Tag, ArrowLeft } from 'lucide-react'
+﻿import { NavLink, Outlet, Link } from 'react-router-dom'
+import { Boxes, GaugeCircle, Images, LayoutDashboard, MessageSquareQuote, Package, Percent, Rows3, Settings, ShoppingBag, Tags } from 'lucide-react'
 import styles from './AdminLayout.module.css'
 
-const NAV = [
-  { to: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={17} />, end: true },
-  { to: '/admin/products', label: 'Products', icon: <Package size={17} /> },
-  { to: '/admin/orders', label: 'Orders', icon: <ShoppingCart size={17} /> },
-  { to: '/admin/categories', label: 'Categories', icon: <Tag size={17} /> },
+const links = [
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/products', label: 'Products', icon: Package },
+  { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { to: '/admin/categories', label: 'Categories', icon: Tags },
+  { to: '/admin/discounts', label: 'Discounts', icon: Percent },
+  { to: '/admin/reviews', label: 'Reviews', icon: MessageSquareQuote },
+  { to: '/admin/content', label: 'Store Content', icon: Settings },
+  { to: '/admin/media', label: 'Product Media', icon: Images },
+  { to: '/admin/brands', label: 'Brands', icon: Boxes },
+  { to: '/admin/collections', label: 'Navigation', icon: Rows3 },
 ]
 
 export default function AdminLayout() {
   return (
-    <div className={styles.layout}>
+    <div className={styles.shell}>
       <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <span>▲</span> Admin
-        </div>
-        <nav className={styles.nav}>
-          {NAV.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
-              }
-            >
-              {item.icon}
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <Link to="/" className={styles.back}>
-          <ArrowLeft size={15} /> Back to Store
+        <Link to="/" className={styles.brand}>
+          <img src="/brand/wingxtra-logo-white.svg" alt="Wingxtra" />
+          <span>Admin</span>
         </Link>
+        <nav className={styles.nav}>
+          {links.map(link => {
+            const Icon = link.icon
+            return (
+              <NavLink key={link.to} to={link.to} end={link.end} className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}>
+                <Icon size={18} /> {link.label}
+              </NavLink>
+            )
+          })}
+        </nav>
+        <div className={styles.status}><GaugeCircle size={18} /> Store control center</div>
       </aside>
-
-      <main className={styles.main}>
-        <div className={styles.content}>
-          <Outlet />
-        </div>
-      </main>
+      <main className={styles.main}><Outlet /></main>
     </div>
   )
 }

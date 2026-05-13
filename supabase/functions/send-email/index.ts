@@ -45,8 +45,8 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         sender: {
-          name: senderName || "VOLANT Store",
-          email: senderEmail || "noreply@volant.store",
+          name: senderName || "Wingxtra Store",
+          email: senderEmail || "noreply@wingxtra.com",
         },
         to: [{ email: to }],
         subject,
@@ -71,3 +71,4 @@ Deno.serve(async (req: Request) => {
     });
   }
 });
+

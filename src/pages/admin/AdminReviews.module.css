@@ -1,0 +1,198 @@
+.page {
+  display: grid;
+  gap: 22px;
+}
+
+.hero,
+.section,
+.statCard,
+.reviewCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(13, 17, 24, 0.84), rgba(8, 11, 16, 0.96));
+  box-shadow: 0 22px 64px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-radius: 28px;
+}
+
+.hero,
+.section,
+.statCard,
+.reviewCard {
+  padding: 24px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  width: fit-content;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #dce8ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin-top: 16px;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 0.98;
+  color: #f8fbff;
+  letter-spacing: -0.06em;
+}
+
+.subtitle,
+.loading,
+.metaLine,
+.reviewBodyWrap p,
+.sectionHeader p {
+  margin-top: 14px;
+  color: rgba(225, 232, 243, 0.72);
+  line-height: 1.72;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  display: grid;
+  gap: 10px;
+}
+
+.statCard span {
+  color: rgba(225, 232, 243, 0.62);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+}
+
+.statCard strong {
+  color: #f8fbff;
+  font-size: 2rem;
+  letter-spacing: -0.06em;
+}
+
+.sectionHeader h2,
+.reviewBodyWrap h3 {
+  color: #f8fbff;
+}
+
+.reviewList {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reviewerBlock {
+  display: flex;
+  align-items: start;
+  gap: 14px;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59,130,246,0.12);
+  color: var(--color-accent-400);
+  flex-shrink: 0;
+}
+
+.reviewMetaTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statusApproved {
+  background: rgba(34,197,94,0.12);
+  color: var(--color-success-400);
+}
+
+.statusHidden {
+  background: rgba(239,68,68,0.1);
+  color: var(--color-error-400);
+}
+
+.starsRow {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.star {
+  color: rgba(255,255,255,0.24);
+  fill: transparent;
+}
+
+.starActive {
+  color: #f6c44f;
+  fill: #f6c44f;
+}
+
+.reviewBodyWrap {
+  margin-top: 18px;
+}
+
+.reviewBodyWrap h3 {
+  font-size: 1rem;
+}
+
+.reviewBodyWrap p {
+  margin-top: 10px;
+}
+
+.reviewActions {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 960px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero,
+  .section,
+  .statCard,
+  .reviewCard {
+    border-radius: 22px;
+  }
+
+  .reviewHeader {
+    flex-direction: column;
+    align-items: start;
+  }
+}

@@ -1,32 +1,35 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { getDefaultSiteContent } from '@/lib/siteContent'
 import styles from './Footer.module.css'
 
 export default function Footer() {
+  const location = useLocation()
+  const previewMode = location.search.includes('preview=draft') ? 'draft' : 'published'
+  const { data: globalContent } = useSiteContent('global_store', previewMode)
+  const content = globalContent ?? getDefaultSiteContent('global_store')
   return (
     <footer className={styles.footer}>
       <div className="container">
         <div className={styles.grid}>
           <div className={styles.brand}>
             <div className={styles.logo}>
-              <span className={styles.logoIcon}>▲</span>
-              <span>VOLANT</span>
+              <img src="/brand/wingxtra-logo.svg" alt="Wingxtra" className={styles.logoImg} />
             </div>
-            <p className={styles.tagline}>
-              Precision-engineered drone components and 3D printed parts for builders who demand performance.
-            </p>
+            <p className={styles.tagline}>{content.footer.tagline}</p>
           </div>
 
           <div className={styles.col}>
-            <h4>Shop</h4>
+            <h4>{content.footer.shopHeading}</h4>
             <Link to="/shop">All Products</Link>
-            <Link to="/shop/drone-frames">Drone Frames</Link>
-            <Link to="/shop/motors">Motors</Link>
-            <Link to="/shop/escs">ESCs</Link>
-            <Link to="/shop/carbon-fiber-parts">Carbon Fiber</Link>
+            <Link to="/drones">Wingxtra Aircraft</Link>
+            <Link to="/collection/additive_manufacturing">Additive Manufacturing</Link>
+            <Link to="/collection/propulsion_systems">Propulsion Systems</Link>
+            <Link to="/collection/avionics_flight_control">Avionics & Flight Control</Link>
           </div>
 
           <div className={styles.col}>
-            <h4>Account</h4>
+            <h4>{content.footer.accountHeading}</h4>
             <Link to="/login">Sign In</Link>
             <Link to="/register">Register</Link>
             <Link to="/orders">My Orders</Link>
@@ -34,21 +37,22 @@ export default function Footer() {
           </div>
 
           <div className={styles.col}>
-            <h4>Support</h4>
-            <a href="mailto:support@volant.store">support@volant.store</a>
-            <Link to="/shop">Documentation</Link>
+            <h4>{content.footer.supportHeading}</h4>
+            <a href={`mailto:${content.footer.supportEmail}`}>{content.footer.supportEmail}</a>
+            <Link to="/shop">{content.footer.documentationLabel}</Link>
           </div>
         </div>
 
         <div className={styles.bottom}>
-          <p>© {new Date().getFullYear()} VOLANT Store. All rights reserved.</p>
+          <p>{`(c) ${new Date().getFullYear()} ${content.footer.copyrightText}`}</p>
           <div className={styles.badges}>
-            <span className={styles.badge}>FDM</span>
-            <span className={styles.badge}>MJF</span>
-            <span className={styles.badge}>Carbon Fiber</span>
+            {content.footer.badges.map(badge => (
+              <span key={badge} className={styles.badge}>{badge}</span>
+            ))}
           </div>
         </div>
       </div>
     </footer>
   )
 }
+

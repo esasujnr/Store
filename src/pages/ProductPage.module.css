@@ -1,346 +1,919 @@
-.page {
-  padding-top: 88px;
-  padding-bottom: var(--space-20);
+﻿.page,
+.aircraftPage {
   min-height: 100vh;
+  background: linear-gradient(180deg, #050805 0%, #08120b 44%, #050805 100%);
+  color: #f7fff9;
+  padding-bottom: 110px;
 }
 
 .notFound {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 60vh;
-  gap: var(--space-4);
-  color: var(--color-neutral-400);
+  display: grid;
+  place-items: center;
+  gap: 18px;
+  color: #ffffff;
+  text-align: center;
 }
 
-.breadcrumb {
+.notFound a,
+.backLink,
+.breadcrumb a,
+.aircraftBreadcrumb a {
+  color: #53ef89;
+  font-weight: 900;
+}
+
+.breadcrumb,
+.aircraftBreadcrumb {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 0.8125rem;
-  color: var(--color-neutral-500);
-  padding: var(--space-6) 0;
   flex-wrap: wrap;
+  gap: 9px;
+  padding: 34px 0 24px;
+  color: rgba(239, 249, 242, 0.62);
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
-.breadcrumb a {
-  transition: color var(--transition-fast);
-}
-
-.breadcrumb a:hover {
-  color: var(--color-neutral-200);
-}
-
-.grid {
+.heroGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-12);
+  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+  gap: 28px;
   align-items: start;
-  padding-bottom: var(--space-12);
 }
 
-.imageSection {}
+.galleryPanel,
+.summaryPanel,
+.templateGuideSection,
+.dossierStory,
+.dossierBlueprint,
+.productVideoSection,
+.contentCard,
+.specSection,
+.reviewSection,
+.bundleSection,
+.aircraftHeroPanel,
+.aircraftBand,
+.aircraftSpecSection,
+.aircraftRecommendedSection,
+.aircraftVideoSection {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
 
-.imageWrapper {
-  position: relative;
-  border-radius: var(--radius-2xl);
+.galleryPanel,
+.summaryPanel {
+  padding: 18px;
+}
+
+.heroImageWrap {
   overflow: hidden;
-  background: var(--color-neutral-900);
-  border: 1px solid var(--color-neutral-800);
-  aspect-ratio: 1;
+  background: #111b14;
+  aspect-ratio: 1.18 / 1;
 }
 
-.image {
+.heroImage,
+.aircraftHeroImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.typeBadge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
+.thumbRow,
+.aircraftThumbRow {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.thumbButton,
+.aircraftThumbButton {
+  flex: 0 0 86px;
+  height: 68px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.thumbButtonActive,
+.aircraftThumbButtonActive {
+  border-color: #25d66f;
+}
+
+.thumbImage,
+.aircraftThumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.assuranceBar {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.assuranceBar div {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(239, 249, 242, 0.72);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.summaryPanel {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+}
+
+.summaryTop,
+.marketplaceMeta,
+.metaPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.categoryTag,
+.typeBadge,
+.saleBadge,
+.aircraftEyebrow,
+.dossierEyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  border: 1px solid;
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.categoryTag {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  width: fit-content;
+  min-height: 31px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 214, 111, 0.48);
+  color: #5cf790;
+  background: rgba(37, 214, 111, 0.08);
+  font-size: 0.72rem;
+  font-weight: 900;
   letter-spacing: 0.08em;
-  color: var(--color-accent-400);
+  text-transform: uppercase;
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-neutral-0);
-  line-height: 1.2;
+.saleBadge {
+  border-color: rgba(255, 193, 7, 0.54);
+  background: rgba(255, 193, 7, 0.1);
+  color: #facc15;
+}
+
+.title,
+.summaryPanel h1,
+.aircraftHeroPanel h1,
+.templateGuideCopy h2,
+.dossierStory h2,
+.dossierBlueprint h2,
+.productVideoIntro h2,
+.contentCard h2,
+.specHeader h2,
+.reviewSectionHeader h2,
+.bundleHeader h2,
+.aircraftSectionHeader h2,
+.aircraftFileGrid h2 {
+  color: #ffffff;
+  font-size: clamp(2.35rem, 5vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.07em;
+}
+
+.description,
+.aircraftSubtitle,
+.templateGuideCopy p,
+.dossierStory p,
+.productVideoIntro p,
+.sectionHeader p,
+.specHeader p,
+.reviewSectionHeader p,
+.bundleHeader p,
+.aircraftSectionHeader p,
+.aircraftOverviewGrid p,
+.aircraftFileGrid p,
+.deliveryMicrocopy {
+  color: rgba(239, 249, 242, 0.72);
+  line-height: 1.72;
+}
+
+.trustLine {
+  padding: 13px 14px;
+  border: 1px solid rgba(37, 214, 111, 0.24);
+  background: rgba(37, 214, 111, 0.075);
+  color: rgba(239, 249, 242, 0.84);
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.priceStack,
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
 }
 
 .price {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-neutral-0);
-  font-family: var(--font-display);
+  color: #ffffff;
+  font-size: 2.1rem;
+  font-weight: 950;
 }
 
-.description {
-  font-size: 0.9375rem;
-  color: var(--color-neutral-400);
-  line-height: 1.7;
+.priceOriginal {
+  color: rgba(239, 249, 242, 0.48);
+  text-decoration: line-through;
+  font-weight: 800;
 }
 
-.specs {
-  background: var(--color-neutral-900);
-  border: 1px solid var(--color-neutral-800);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-}
-
-.specs h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-neutral-300);
-  margin-bottom: var(--space-4);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.specsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.specItem {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-neutral-800);
-}
-
-.specItem:last-child {
-  border-bottom: none;
-}
-
-.specItem dt {
-  color: var(--color-neutral-500);
-}
-
-.specItem dd {
-  color: var(--color-neutral-200);
-  font-weight: 500;
-}
-
-.stockRow {
+.reviewSummary,
+.starsRow {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
+  color: rgba(239, 249, 242, 0.72);
+  font-weight: 800;
 }
 
-.stockDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.star {
+  color: rgba(255, 255, 255, 0.18);
 }
 
-.stockDotIn {
-  background: var(--color-success-500);
-  box-shadow: 0 0 6px var(--color-success-500);
+.starActive {
+  color: #facc15;
+  fill: currentColor;
 }
 
-.stockDotOut {
-  background: var(--color-error-500);
+.factGrid,
+.aircraftHeroFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.stockText {
-  font-size: 0.875rem;
-  color: var(--color-neutral-400);
+.factCard,
+.aircraftHeroFacts div {
+  padding: 14px;
+  border-left: 2px solid #25d66f;
+  background: rgba(255, 255, 255, 0.045);
 }
 
+.factCard span,
+.aircraftHeroFacts span {
+  display: block;
+  color: rgba(239, 249, 242, 0.58);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.factCard strong,
+.aircraftHeroFacts strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+  font-size: 0.98rem;
+}
+
+.beforeYouBuy,
+.deliveryPanel,
+.stockRow,
+.qtyRow {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.beforeYouBuyHeader,
+.deliveryNote,
+.stockRow,
 .qtyRow {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 9px;
+  color: #ffffff;
+  font-weight: 900;
 }
 
-.qtyLabel {
-  font-size: 0.9rem;
-  color: var(--color-neutral-400);
+.beforeYouBuy ul {
+  margin-top: 12px;
+  padding-left: 20px;
+  color: rgba(239, 249, 242, 0.7);
+  line-height: 1.65;
+}
+
+.stockDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.stockDotIn {
+  background: #25d66f;
+}
+
+.stockDotOut {
+  background: #ef4444;
+}
+
+.qtyRow {
+  justify-content: space-between;
 }
 
 .qtyControl {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  background: var(--color-neutral-900);
-  border: 1px solid var(--color-neutral-800);
-  border-radius: var(--radius-md);
-  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .qtyBtn {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--color-neutral-400);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-}
-
-.qtyBtn:hover:not(:disabled) {
-  background: var(--color-neutral-800);
-  color: var(--color-neutral-0);
-}
-
-.qtyBtn:disabled {
-  opacity: 0.3;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  color: #ffffff;
+  background: transparent;
 }
 
 .qtyVal {
-  min-width: 32px;
+  min-width: 42px;
   text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-neutral-100);
+  color: #ffffff;
+  font-weight: 900;
 }
 
-.addBtn {
-  margin-top: var(--space-2);
-}
-
-.downloadNote {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  color: var(--color-neutral-500);
-  background: rgba(34, 197, 94, 0.06);
-  border: 1px solid rgba(34, 197, 94, 0.15);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-}
-
-/* Bundle section */
+.templateGuideSection,
+.dossierSection,
+.productVideoSection,
+.contentGrid,
+.specSection,
+.reviewSection,
 .bundleSection {
-  margin-top: var(--space-16);
-  padding-top: var(--space-12);
-  border-top: 1px solid var(--color-neutral-800);
+  margin-top: 30px;
 }
 
-.bundleTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-neutral-50);
-  margin-bottom: var(--space-2);
+.templateGuideSection {
+  padding: clamp(32px, 5vw, 54px);
 }
 
-.bundleSubtitle {
-  font-size: 0.9375rem;
-  color: var(--color-neutral-500);
-  margin-bottom: var(--space-6);
-}
-
-.bundleGrid {
+.templateGuideLayout,
+.dossierSection,
+.contentGrid,
+.reviewLayout,
+.aircraftOverviewGrid,
+.aircraftFileGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.templateGuideCards {
+  display: grid;
+  gap: 12px;
+}
+
+.templateGuideCard,
+.specCard,
+.reviewCard,
+.reviewFormCard,
+.bundleCard,
+.aircraftOverviewGrid article,
+.aircraftFileGrid article,
+.aircraftEmptyParts {
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.templateGuideCard span {
+  color: #53ef89;
+  font-weight: 950;
+}
+
+.templateGuideCard p {
+  margin-top: 8px;
+  color: rgba(239, 249, 242, 0.75);
+  line-height: 1.6;
+}
+
+.dossierStory,
+.dossierBlueprint,
+.contentCard,
+.specSection,
+.reviewSection,
+.bundleSection {
+  padding: clamp(24px, 4vw, 34px);
+}
+
+.dossierList,
+.featureList,
+.aircraftOverviewGrid ul {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.dossierList li,
+.featureList li,
+.aircraftOverviewGrid li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: rgba(239, 249, 242, 0.76);
+  line-height: 1.55;
+}
+
+.managedFileList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.managedFileLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid rgba(37, 214, 111, 0.28);
+  color: #53ef89;
+  font-weight: 900;
+}
+
+.productVideoFrame,
+.aircraftVideoFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #030503;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 22px;
+}
+
+.productVideoEmbed,
+.aircraftVideoEmbed,
+.productVideoPreviewButton,
+.productVideoPreviewImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.productVideoEmbed,
+.aircraftVideoEmbed {
+  border: 0;
+}
+
+.productVideoPreviewButton {
+  border: 0;
+  padding: 0;
+  background: #030503;
+  color: #ffffff;
+}
+
+.productVideoPreviewImage {
+  object-fit: cover;
+  opacity: 0.92;
+}
+
+.productVideoPlayButton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: auto;
+  width: 160px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #07110b;
+  font-weight: 950;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.36);
+}
+
+.sectionHeader,
+.specHeader,
+.reviewSectionHeader,
+.bundleHeader,
+.aircraftSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.sectionHeader {
+  justify-content: flex-start;
+}
+
+.specGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.specCard dt {
+  color: rgba(239, 249, 242, 0.56);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.specCard dd {
+  margin-top: 8px;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.reviewScoreCard {
+  min-width: 160px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.reviewScoreCard strong {
+  color: #ffffff;
+  font-size: 2rem;
+}
+
+.reviewList,
+.reviews {
+  display: grid;
+  gap: 12px;
+}
+
+.reviewCardHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.reviewCard h3,
+.reviewFormCard h3,
+.bundleInfo .bundleName {
+  color: #ffffff;
+}
+
+.reviewCard p,
+.reviewBody,
+.reviewLoginNote {
+  color: rgba(239, 249, 242, 0.7);
+  line-height: 1.65;
+}
+
+.reviewInput,
+.reviewTextarea {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.ratingPicker {
+  display: flex;
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.ratingButton {
+  border: 0;
+  background: transparent;
+}
+
+.emptyReviews {
+  padding: 24px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  color: rgba(239, 249, 242, 0.62);
+}
+
+.bundleGrid,
+.aircraftRecommendedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .bundleCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  background: var(--color-neutral-900);
-  border: 1px solid var(--color-neutral-800);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  position: relative;
+  display: grid;
+  grid-template-columns: auto 74px 1fr;
+  gap: 14px;
+  align-items: center;
+  color: #ffffff;
   text-align: left;
 }
 
-.bundleCard:hover {
-  border-color: var(--color-neutral-600);
-}
-
 .bundleCardSelected {
-  border-color: var(--color-accent-500);
-  background: rgba(59, 130, 246, 0.06);
-}
-
-.bundleCheck {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  color: var(--color-neutral-600);
+  border-color: rgba(37, 214, 111, 0.42);
+  background: rgba(37, 214, 111, 0.08);
 }
 
 .bundleImg {
-  width: 100%;
-  aspect-ratio: 1;
+  width: 74px;
+  height: 58px;
   object-fit: cover;
-  border-radius: var(--radius-lg);
-  background: var(--color-neutral-800);
 }
 
 .bundleInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.bundleCategory,
+.bundlePrice {
+  color: rgba(239, 249, 242, 0.62);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.aircraftHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(430px, 0.94fr);
+  min-height: calc(100vh - 78px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.aircraftHeroMedia {
+  min-height: 620px;
+  background: #101712;
+}
+
+.aircraftHeroPanel {
+  padding: clamp(28px, 5vw, 58px);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  justify-content: center;
+  gap: 18px;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
 }
 
-.bundleCategory {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--color-accent-400);
+.aircraftHeroPanel h1 {
+  font-size: clamp(3.2rem, 6vw, 6.2rem);
+}
+
+.aircraftBuyBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.aircraftBuyBar span {
+  display: block;
+  color: rgba(239, 249, 242, 0.58);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
-.bundleName {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-neutral-100);
+.aircraftBuyBar strong {
+  color: #ffffff;
+  font-size: 1.8rem;
 }
 
-.bundlePrice {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--color-neutral-0);
+.aircraftSubnav {
+  position: sticky;
+  top: 78px;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
 }
 
-.bundleSummary {
-  margin-top: var(--space-5);
-  font-size: 0.875rem;
-  color: var(--color-accent-400);
+.aircraftSubnav a {
+  flex: 0 0 auto;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 15px;
+  color: rgba(247, 255, 249, 0.78);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-@media (max-width: 768px) {
-  .grid {
+.aircraftSubnav a:hover {
+  color: #53ef89;
+}
+
+.aircraftBand,
+.aircraftSpecSection,
+.aircraftRecommendedSection,
+.aircraftVideoSection {
+  margin: 0;
+  padding: clamp(58px, 7vw, 96px) 0;
+  border-left: 0;
+  border-right: 0;
+  box-shadow: none;
+}
+
+.aircraftOverviewGrid article h3,
+.aircraftRecommendedCard h3 {
+  color: #ffffff;
+  font-size: 1.35rem;
+  margin-bottom: 10px;
+}
+
+.aircraftFileGrid article svg {
+  color: #53ef89;
+  margin-bottom: 16px;
+}
+
+.aircraftSpecTable {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aircraftSpecTable div {
+  min-height: 112px;
+  padding: 18px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aircraftSpecTable span {
+  display: block;
+  color: rgba(239, 249, 242, 0.54);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.aircraftSpecTable strong {
+  display: block;
+  margin-top: 9px;
+  color: #ffffff;
+}
+
+.aircraftRecommendedCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.aircraftRecommendedCard img {
+  width: 110px;
+  height: 82px;
+  object-fit: cover;
+}
+
+.aircraftRecommendedCard span,
+.aircraftRecommendedCard p {
+  color: rgba(239, 249, 242, 0.62);
+  font-weight: 900;
+}
+
+@media (max-width: 1120px) {
+  .heroGrid,
+  .aircraftHero,
+  .templateGuideLayout,
+  .dossierSection,
+  .contentGrid,
+  .reviewLayout,
+  .aircraftOverviewGrid,
+  .aircraftFileGrid {
     grid-template-columns: 1fr;
-    gap: var(--space-8);
+  }
+
+  .aircraftHero {
+    min-height: auto;
+  }
+
+  .aircraftHeroMedia {
+    min-height: 420px;
+  }
+
+  .aircraftHeroPanel {
+    border-left: 0;
+  }
+
+  .specGrid,
+  .aircraftSpecTable {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .page,
+  .aircraftPage {
+    padding-bottom: 70px;
+  }
+
+  .breadcrumb,
+  .aircraftBreadcrumb {
+    padding-top: 22px;
+  }
+
+  .summaryPanel,
+  .galleryPanel,
+  .templateGuideSection,
+  .dossierStory,
+  .dossierBlueprint,
+  .productVideoSection,
+  .contentCard,
+  .specSection,
+  .reviewSection,
+  .bundleSection,
+  .aircraftHeroPanel {
+    padding: 20px;
+  }
+
+  .title,
+  .summaryPanel h1,
+  .aircraftHeroPanel h1,
+  .templateGuideCopy h2,
+  .dossierStory h2,
+  .dossierBlueprint h2,
+  .productVideoIntro h2,
+  .contentCard h2,
+  .specHeader h2,
+  .reviewSectionHeader h2,
+  .bundleHeader h2,
+  .aircraftSectionHeader h2,
+  .aircraftFileGrid h2 {
+    font-size: clamp(2.1rem, 12vw, 3.6rem);
+    line-height: 0.98;
+  }
+
+  .factGrid,
+  .aircraftHeroFacts,
+  .assuranceBar,
+  .specGrid,
+  .aircraftSpecTable,
+  .bundleGrid,
+  .aircraftRecommendedGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeader,
+  .specHeader,
+  .reviewSectionHeader,
+  .bundleHeader,
+  .aircraftSectionHeader,
+  .aircraftBuyBar {
+    display: grid;
+  }
+
+  .aircraftHeroMedia {
+    min-height: 300px;
+  }
+
+  .aircraftSubnav {
+    top: 68px;
+    justify-content: flex-start;
+  }
+
+  .aircraftRecommendedCard,
+  .bundleCard {
+    grid-template-columns: 1fr;
+  }
+
+  .aircraftRecommendedCard img,
+  .bundleImg {
+    width: 100%;
+    height: 180px;
   }
 }

@@ -1,43 +1,37 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
-import type { Order } from '@/lib/database.types'
+import type { Order, OrderStatus, ShippingStatus } from '@/lib/database.types'
+
+const orderSelect = '*, order_items(*, product:products(*, category:categories(*)))'
+const adminOrderSelect = '*, profile:profiles(*), order_items(*, product:products(*, category:categories(*)))'
 
 export function useOrders() {
-  const { user } = useAuth()
-
   return useQuery({
-    queryKey: ['orders', user?.id],
+    queryKey: ['orders'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, order_items(*, product:products(*))')
-        .eq('user_id', user!.id)
+        .select(orderSelect)
         .order('created_at', { ascending: false })
-
       if (error) throw error
-      return data as Order[]
+      return (data || []) as Order[]
     },
-    enabled: !!user,
   })
 }
 
-export function useOrder(orderId: string) {
-  const { user } = useAuth()
-
+export function useOrder(id?: string) {
   return useQuery({
-    queryKey: ['order', orderId],
+    queryKey: ['order', id],
+    enabled: Boolean(id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, order_items(*, product:products(*))')
-        .eq('id', orderId)
+        .select(orderSelect)
+        .eq('id', id!)
         .maybeSingle()
-
       if (error) throw error
       return data as Order | null
     },
-    enabled: !!orderId && !!user,
   })
 }
 
@@ -47,41 +41,71 @@ export function useAdminOrders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, order_items(*, product:products(*))')
+        .select(adminOrderSelect)
         .order('created_at', { ascending: false })
-
       if (error) throw error
-      return data as Order[]
+      return (data || []) as Order[]
     },
   })
 }
 
+export type OrderFulfillmentUpdate = {
+  orderId: string
+  status?: OrderStatus
+  shippingStatus?: ShippingStatus
+  trackingNumber?: string
+  shippingCourier?: string
+  trackingUrl?: string
+  fulfillmentNotes?: string
+  adminNotes?: string
+}
+
+function getNotificationEvent(input: OrderFulfillmentUpdate): string | null {
+  if (input.status === 'cancelled') return 'order_cancelled'
+  if (input.status === 'refunded') return 'order_refunded'
+  if (input.shippingStatus === 'processing' || input.shippingStatus === 'ready_to_ship') return 'shipment_processing'
+  if (input.shippingStatus === 'shipped') return 'shipment_shipped'
+  if (input.shippingStatus === 'delivered') return 'order_delivered'
+  return null
+}
+
 export function useUpdateOrderShipping() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
-      orderId,
-      shippingStatus,
-      trackingNumber,
-    }: {
-      orderId: string
-      shippingStatus: string
-      trackingNumber?: string
-    }) => {
-      const updatePayload: Record<string, string> = { shipping_status: shippingStatus }
-      if (trackingNumber !== undefined) updatePayload.tracking_number = trackingNumber
+    mutationFn: async (input: OrderFulfillmentUpdate) => {
+      const payload: Record<string, unknown> = {}
+      if (input.status) payload.status = input.status
+      if (input.shippingStatus) payload.shipping_status = input.shippingStatus
+      if (input.trackingNumber !== undefined) payload.tracking_number = input.trackingNumber
+      if (input.shippingCourier !== undefined) payload.shipping_courier = input.shippingCourier
+      if (input.trackingUrl !== undefined) payload.tracking_url = input.trackingUrl
+      if (input.fulfillmentNotes !== undefined) payload.fulfillment_notes = input.fulfillmentNotes
+      if (input.adminNotes !== undefined) payload.admin_notes = input.adminNotes
+      if (input.shippingStatus === 'shipped') payload.shipped_at = new Date().toISOString()
+      if (input.shippingStatus === 'delivered') payload.delivered_at = new Date().toISOString()
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('orders')
-        .update(updatePayload)
-        .eq('id', orderId)
-
+        .update(payload)
+        .eq('id', input.orderId)
+        .select(adminOrderSelect)
+        .single()
       if (error) throw error
+
+      const eventType = getNotificationEvent(input)
+      if (eventType) {
+        supabase.functions.invoke('send-order-notification', {
+          body: { order_id: input.orderId, event_type: eventType },
+        }).catch(error => console.error('Order notification failed', error))
+      }
+
+      return data as Order
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    onSuccess: order => {
+      qc.invalidateQueries({ queryKey: ['admin-orders'] })
+      qc.invalidateQueries({ queryKey: ['orders'] })
+      qc.invalidateQueries({ queryKey: ['order', order.id] })
     },
   })
 }

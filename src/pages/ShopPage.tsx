@@ -1,146 +1,134 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { Filter, X } from 'lucide-react'
+﻿import { useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
+import { ArrowRight, Search, SlidersHorizontal } from 'lucide-react'
 import SEO from '@/components/SEO'
 import ProductCard from '@/components/products/ProductCard'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { useProducts, useCategories } from '@/hooks/useProducts'
+import Input from '@/components/ui/Input'
+import { useMarketplaceBrands, useProducts } from '@/hooks/useProducts'
+import {
+  ADDITIVE_MANUFACTURING_OPTIONS,
+  PRODUCT_FAMILY_OPTIONS,
+  getProductAdditiveType,
+  getProductBrand,
+  getProductDeliveryType,
+  getProductFamily,
+  isNewArrival,
+} from '@/lib/catalog'
+import { fallbackProducts } from '@/lib/fallbackCatalog'
+import { getDefaultSiteContent } from '@/lib/siteContent'
+import { isProductOnSale } from '@/lib/utils'
 import styles from './ShopPage.module.css'
 
-const FULFILLMENT_FILTERS = [
-  { value: '', label: 'All Types' },
-  { value: 'fdm', label: 'FDM Digital' },
-  { value: 'mjf', label: 'MJF 3D Printed' },
-  { value: 'composite', label: 'Carbon Fiber' },
-]
+function getParam(locationSearch: string, key: string) {
+  return new URLSearchParams(locationSearch).get(key) || ''
+}
 
 export default function ShopPage() {
-  const { category: categorySlug } = useParams<{ category?: string }>()
-  const [fulfillmentFilter, setFulfillmentFilter] = useState('')
-  const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc'>('newest')
+  const { categorySlug } = useParams<{ categorySlug?: string }>()
+  const location = useLocation()
+  const previewMode = location.search.includes('preview=draft') ? 'draft' : 'published'
+  const { data: contentData } = useProducts()
+  const { data: brands } = useMarketplaceBrands(true)
+  const content = getDefaultSiteContent('shop_page')
+  const products = contentData?.length ? contentData : fallbackProducts
 
-  const { data: products, isLoading } = useProducts(categorySlug)
-  const { data: categories } = useCategories()
+  const initialFamily = getParam(location.search, 'family') || (PRODUCT_FAMILY_OPTIONS.some(option => option.value === categorySlug) ? categorySlug || '' : '')
+  const [search, setSearch] = useState(getParam(location.search, 'q'))
+  const [family, setFamily] = useState(initialFamily)
+  const [brand, setBrand] = useState(getParam(location.search, 'brand'))
+  const [delivery, setDelivery] = useState(getParam(location.search, 'delivery'))
+  const [additive, setAdditive] = useState(getParam(location.search, 'additive'))
+  const [scope, setScope] = useState(getParam(location.search, 'scope'))
+  const [fulfillment, setFulfillment] = useState(getParam(location.search, 'type'))
 
-  // Fallback categories if Supabase not connected
-  const fallbackCategories = [
-    { id: '1', slug: 'carbon-fiber-parts', name: 'Carbon Fiber Parts' },
-    { id: '2', slug: 'drone-frames', name: 'Drone Frames' },
-    { id: '3', slug: 'escs', name: 'ESCs' },
-    { id: '4', slug: 'filament', name: 'Filament' },
-    { id: '5', slug: 'fpv-parts', name: 'FPV Parts' },
-    { id: '6', slug: 'motors', name: 'Motors' },
-    { id: '7', slug: 'propellers', name: 'Propellers' },
-    { id: '8', slug: 'servos', name: 'Servos' },
-  ]
+  useEffect(() => {
+    setSearch(getParam(location.search, 'q'))
+    setFamily(getParam(location.search, 'family') || (PRODUCT_FAMILY_OPTIONS.some(option => option.value === categorySlug) ? categorySlug || '' : ''))
+    setBrand(getParam(location.search, 'brand'))
+    setDelivery(getParam(location.search, 'delivery'))
+    setAdditive(getParam(location.search, 'additive'))
+    setScope(getParam(location.search, 'scope'))
+    setFulfillment(getParam(location.search, 'type'))
+  }, [categorySlug, location.search])
 
-  const displayCategories = categories?.length ? categories : fallbackCategories
+  const filtered = useMemo(() => products.filter(product => {
+    const query = search.trim().toLowerCase()
+    const categoryMatches = !categorySlug || PRODUCT_FAMILY_OPTIONS.some(option => option.value === categorySlug) || product.category?.slug === categorySlug
+    if (!categoryMatches) return false
+    if (query && !`${product.name} ${product.description} ${product.brand || ''} ${product.tags?.join(' ')}`.toLowerCase().includes(query)) return false
+    if (family && getProductFamily(product) !== family) return false
+    if (brand && getProductBrand(product) !== brand) return false
+    if (delivery && getProductDeliveryType(product) !== delivery) return false
+    if (additive && getProductAdditiveType(product) !== additive) return false
+    if (fulfillment && product.fulfillment_type !== fulfillment) return false
+    if (scope === 'sale' && !isProductOnSale(product)) return false
+    if (scope === 'new' && !isNewArrival(product)) return false
+    if (getParam(location.search, 'availability') === 'physical_only' && product.fulfillment_type === 'fdm') return false
+    return true
+  }), [brand, categorySlug, additive, delivery, family, fulfillment, location.search, products, scope, search])
 
-  const currentCategory = displayCategories?.find(c => c.slug === categorySlug)
+  const brandOptions = brands?.length ? brands.map(item => item.name) : [...new Set(products.map(getProductBrand))]
+  const activeFamily = PRODUCT_FAMILY_OPTIONS.find(option => option.value === family)
 
-  const filtered = (products ?? [])
-    .filter(p => !fulfillmentFilter || p.fulfillment_type === fulfillmentFilter)
-    .sort((a, b) => {
-      if (sortBy === 'price_asc') return a.price - b.price
-      if (sortBy === 'price_desc') return b.price - a.price
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    })
+  function clearFilters() {
+    setSearch('')
+    setFamily('')
+    setBrand('')
+    setDelivery('')
+    setAdditive('')
+    setScope('')
+    setFulfillment('')
+  }
 
   return (
     <>
-      <SEO
-        title={currentCategory ? `${currentCategory.name} — Shop` : 'Shop All Products'}
-        description="Browse our full range of drone frames, motors, ESCs, STL downloads, and carbon fiber parts."
-        url={categorySlug ? `/shop/${categorySlug}` : '/shop'}
-        breadcrumbs={[
-          { name: 'Home', url: '/' },
-          { name: 'Shop', url: '/shop' },
-          ...(currentCategory ? [{ name: currentCategory.name, url: `/shop/${categorySlug}` }] : []),
-        ]}
-      />
-
+      <SEO title={content.seo.title} description={content.seo.description} url="/shop" />
       <div className={styles.page}>
-        <div className="container">
-          <div className={styles.layout}>
-            {/* Sidebar */}
-            <aside className={styles.sidebar}>
-              <h3 className={styles.sidebarTitle}>Categories</h3>
-              <nav className={styles.categoryNav}>
-                <Link
-                  to="/shop"
-                  className={`${styles.categoryLink} ${!categorySlug ? styles.categoryLinkActive : ''}`}
-                >
-                  All Products
-                </Link>
-                {displayCategories?.map(cat => (
-                  <Link
-                    key={cat.id}
-                    to={`/shop/${cat.slug}`}
-                    className={`${styles.categoryLink} ${categorySlug === cat.slug ? styles.categoryLinkActive : ''}`}
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </nav>
-
-              <h3 className={styles.sidebarTitle} style={{ marginTop: 'var(--space-8)' }}>Type</h3>
-              <div className={styles.filterGroup}>
-                {FULFILLMENT_FILTERS.map(f => (
-                  <button
-                    key={f.value}
-                    className={`${styles.filterBtn} ${fulfillmentFilter === f.value ? styles.filterBtnActive : ''}`}
-                    onClick={() => setFulfillmentFilter(f.value)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </aside>
-
-            {/* Main */}
-            <main className={styles.main}>
-              <div className={styles.header}>
-                <div>
-                  <h1 className={styles.pageTitle}>
-                    {currentCategory?.name ?? 'All Products'}
-                  </h1>
-                  {!isLoading && (
-                    <p className={styles.count}>{filtered.length} product{filtered.length !== 1 ? 's' : ''}</p>
-                  )}
-                </div>
-                <select
-                  className={styles.sortSelect}
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as typeof sortBy)}
-                >
-                  <option value="newest">Newest</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                </select>
-              </div>
-
-              {isLoading ? (
-                <div className={styles.loading}>
-                  <LoadingSpinner size={40} />
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className={styles.empty}>
-                  <p>No products found.</p>
-                  {fulfillmentFilter && (
-                    <button className={styles.clearFilter} onClick={() => setFulfillmentFilter('')}>
-                      <X size={14} /> Clear filter
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className={styles.grid}>
-                  {filtered.map(product => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-              )}
-            </main>
+        <section className={styles.hero}>
+          <div className="container">
+            <span className={styles.eyebrow}>Store catalog</span>
+            <h1>{activeFamily ? activeFamily.label : 'Shop Wingxtra by product path'}</h1>
+            <p>{activeFamily ? activeFamily.description : 'Browse the full UAV marketplace, compare physical and digital fulfillment paths, and move into the right aircraft or component family faster.'}</p>
+            <div className={styles.quickFamilies}>
+              <Link to="/collection/new-arrivals">New arrivals <ArrowRight size={14} /></Link>
+              <Link to="/collection/additive_manufacturing">Additive manufacturing <ArrowRight size={14} /></Link>
+              <Link to="/drones">Wingxtra aircraft <ArrowRight size={14} /></Link>
+            </div>
           </div>
+        </section>
+
+        <div className="container">
+          <section className={styles.filters}>
+            <div className={styles.searchBox}>
+              <Search size={18} />
+              <Input placeholder="Search products, brands, mission systems..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <select value={family} onChange={e => setFamily(e.target.value)}><option value="">All families</option>{PRODUCT_FAMILY_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+            <select value={brand} onChange={e => setBrand(e.target.value)}><option value="">All brands</option>{brandOptions.map(name => <option key={name} value={name}>{name}</option>)}</select>
+            <select value={delivery} onChange={e => setDelivery(e.target.value)}><option value="">All delivery types</option><option value="digital_download">Digital Download</option><option value="physical_shipment">Physical Shipment</option><option value="made_to_order">Made To Order</option></select>
+            <select value={additive} onChange={e => setAdditive(e.target.value)}><option value="">All additive types</option>{ADDITIVE_MANUFACTURING_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+            <select value={scope} onChange={e => setScope(e.target.value)}><option value="">All products</option><option value="new">New Arrivals</option><option value="sale">On Sale</option></select>
+          </section>
+
+          <section className={styles.catalogIntro}>
+            <div>
+              <SlidersHorizontal size={18} />
+              <span>{filtered.length} product{filtered.length === 1 ? '' : 's'} shown</span>
+            </div>
+            <button onClick={clearFilters}>Clear filters</button>
+          </section>
+
+          <section className={styles.collectionTiles}>
+            {PRODUCT_FAMILY_OPTIONS.slice(0, 8).map(option => (
+              <Link key={option.value} to={option.href || `/collection/${option.value}`}>
+                <span>{option.label}</span>
+                <ArrowRight size={15} />
+              </Link>
+            ))}
+          </section>
+
+          <section className={styles.grid}>{filtered.map(product => <ProductCard key={product.id} product={product} />)}</section>
+          {!filtered.length && <div className={styles.empty}>No products match these filters yet. Clear filters or add products in admin.</div>}
         </div>
       </div>
     </>

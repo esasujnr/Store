@@ -160,3 +160,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Final premium refinement pass */
+.page {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(37, 214, 111, 0.12), transparent 34%),
+    linear-gradient(180deg, #050805 0%, #08100a 48%, #050805 100%);
+}
+
+.section,
+.addrCard,
+.addForm {
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+    #101712;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.18);
+}
+
+.title,
+.sectionHeader h2,
+.addrLabel {
+  color: #f6fff8;
+}
+
+.addrCardDefault {
+  border-color: rgba(37, 214, 111, 0.48);
+  background: rgba(31, 185, 88, 0.12);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 0.95;
+  }
+
+  .section {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .addrCard,
+  .formActions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .addrActions {
+    align-items: flex-start;
+  }
+}

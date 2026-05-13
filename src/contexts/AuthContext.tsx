@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/lib/database.types'
@@ -23,18 +23,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  async function fetchProfile(userId: string) {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle()
-    if (data) setProfile(data as Profile)
-  }
+    setProfile((data as Profile) ?? null)
+  }, [])
 
-  async function refreshProfile() {
+  const refreshProfile = useCallback(async () => {
     if (user) await fetchProfile(user.id)
-  }
+  }, [fetchProfile, user])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [fetchProfile])
 
   async function signUp(email: string, password: string, fullName: string) {
     const { error } = await supabase.auth.signUp({

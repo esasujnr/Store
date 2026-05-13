@@ -3,11 +3,13 @@ import { Trash2, ShoppingBag, ArrowRight, Download, Package } from 'lucide-react
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import { useCart } from '@/contexts/CartContext'
-import { formatCurrency, getFulfillmentLabel, isDigital } from '@/lib/utils'
+import { useCurrency } from '@/contexts/CurrencyContext'
+import { getFulfillmentLabel, getInventoryStatus, getProductPrice, isDigital, isProductOnSale } from '@/lib/utils'
 import styles from './CartPage.module.css'
 
 export default function CartPage() {
   const { items, totalItems, subtotal, hasPhysical, removeItem, updateQuantity, clearCart } = useCart()
+  const { formatFromBase } = useCurrency()
 
   if (items.length === 0) {
     return (
@@ -36,10 +38,15 @@ export default function CartPage() {
           </div>
 
           <div className={styles.layout}>
-            {/* Items */}
             <div className={styles.items}>
               {items.map(({ product, quantity }) => {
                 const digital = isDigital(product.fulfillment_type)
+                const effectivePrice = getProductPrice(product)
+                const onSale = isProductOnSale(product)
+                const nextInventory = getInventoryStatus(product, quantity + 1)
+                const currentInventory = getInventoryStatus(product, quantity)
+                const canIncrease = digital || nextInventory.canPurchase
+
                 return (
                   <div key={product.id} className={styles.item}>
                     <img
@@ -60,7 +67,11 @@ export default function CartPage() {
                       <h3 className={styles.itemName}>
                         <Link to={`/product/${product.slug}`}>{product.name}</Link>
                       </h3>
-                      <p className={styles.itemPrice}>{formatCurrency(product.price)}</p>
+                      <p className={styles.itemPrice}>
+                        {formatFromBase(effectivePrice)}
+                        {onSale && <span className={styles.itemPriceOriginal}>{formatFromBase(product.price)}</span>}
+                      </p>
+                      {!digital && <p className={styles.stockNote}>{currentInventory.label}</p>}
                     </div>
                     <div className={styles.itemActions}>
                       {!digital && (
@@ -68,16 +79,17 @@ export default function CartPage() {
                           <button
                             className={styles.qtyBtn}
                             onClick={() => updateQuantity(product.id, quantity - 1)}
-                          >−</button>
+                          >-</button>
                           <span>{quantity}</span>
                           <button
                             className={styles.qtyBtn}
                             onClick={() => updateQuantity(product.id, quantity + 1)}
+                            disabled={!canIncrease}
                           >+</button>
                         </div>
                       )}
                       <span className={styles.lineTotal}>
-                        {formatCurrency(product.price * quantity)}
+                        {formatFromBase(effectivePrice * quantity)}
                       </span>
                       <button
                         className={styles.removeBtn}
@@ -92,13 +104,12 @@ export default function CartPage() {
               })}
             </div>
 
-            {/* Summary */}
             <div className={styles.summary}>
               <h2>Order Summary</h2>
               <div className={styles.summaryRows}>
                 <div className={styles.summaryRow}>
                   <span>Items ({totalItems})</span>
-                  <span>{formatCurrency(subtotal)}</span>
+                  <span>{formatFromBase(subtotal)}</span>
                 </div>
                 {hasPhysical && (
                   <div className={styles.summaryRow}>
@@ -109,7 +120,7 @@ export default function CartPage() {
               </div>
               <div className={styles.summaryTotal}>
                 <span>Subtotal</span>
-                <span>{formatCurrency(subtotal)}</span>
+                <span>{formatFromBase(subtotal)}</span>
               </div>
 
               {hasPhysical && (

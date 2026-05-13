@@ -1,3 +1,5 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -85,8 +87,18 @@
   --space-24: 96px;
 
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, sans-serif;
   --font-display: 'Space Grotesk', system-ui, sans-serif;
+
+  /* Wingxtra store surface system */
+  --store-bg: #050805;
+  --store-bg-soft: #08100a;
+  --store-panel: rgba(255, 255, 255, 0.055);
+  --store-panel-strong: #101712;
+  --store-line: rgba(255, 255, 255, 0.1);
+  --store-text: #f6fff8;
+  --store-muted: rgba(232, 246, 236, 0.74);
+  --store-accent: #25d66f;
 
   /* Radius */
   --radius-sm: 4px;
@@ -118,7 +130,9 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-neutral-950);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(37, 214, 111, 0.08), transparent 32%),
+    linear-gradient(180deg, var(--store-bg), var(--store-bg-soft) 46%, var(--store-bg));
   color: var(--color-neutral-100);
   line-height: 1.5;
   min-height: 100vh;
@@ -215,7 +229,7 @@ input, textarea, select {
 
 .container {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 0 var(--space-6);
 }
@@ -230,3 +244,4 @@ input, textarea, select {
 .page-enter {
   animation: fadeIn 0.25s ease forwards;
 }
+

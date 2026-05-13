@@ -1,0 +1,574 @@
+.page {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(37, 214, 111, 0.14), transparent 34%),
+    linear-gradient(180deg, #050805 0%, #08100a 48%, #050805 100%);
+  color: #eef4ee;
+  min-height: 100vh;
+}
+
+.hero {
+  position: relative;
+  min-height: 82vh;
+  overflow: hidden;
+  background: #081008;
+}
+
+.heroImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroShade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3, 8, 4, 0.38), rgba(6, 16, 8, 0.74) 58%, rgba(5, 12, 6, 0.96) 100%),
+    radial-gradient(circle at 76% 36%, rgba(37, 214, 111, 0.22), transparent 36%);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  margin-left: auto;
+  margin-right: 9%;
+  padding: 160px 52px 88px;
+  min-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    rgba(7, 18, 10, 0.54);
+  backdrop-filter: blur(3px);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 34px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(33, 180, 84, 0.75);
+  color: #f5fff8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroContent h1,
+.storyHeader h2,
+.featureCopy h2,
+.catalogHeader h2,
+.blueprintCopy h2 {
+  color: #ffffff;
+  font-size: clamp(3rem, 6vw, 5.9rem);
+  line-height: 0.88;
+  letter-spacing: -0.075em;
+}
+
+.heroContent p,
+.storyCard p,
+.featureCopy p,
+.catalogBody p,
+.blueprintCopy p,
+.blueprintCard p {
+  color: rgba(236, 245, 238, 0.78);
+  line-height: 1.72;
+}
+
+.primaryCta,
+.secondaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  width: fit-content;
+  padding: 0 26px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.primaryCta {
+  background: linear-gradient(135deg, #23c762, #139342);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(20, 164, 75, 0.24);
+}
+
+.secondaryCta {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: transparent;
+  border: none;
+}
+
+.arrowLeft {
+  left: 24px;
+}
+
+.arrowRight {
+  right: 24px;
+}
+
+.quickNav,
+.storySection,
+.featureSection,
+.catalogSection,
+.blueprintSection {
+  padding: clamp(54px, 7vw, 86px) 0;
+}
+
+.quickNavInner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.quickNavItem {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: #f3fff5;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.videoSection {
+  position: relative;
+  padding: 0 0 48px;
+}
+
+.videoBand {
+  background:
+    linear-gradient(180deg, rgba(35, 199, 98, 0.94) 0%, rgba(20, 147, 66, 0.94) 100%);
+  padding: 0 0 60px;
+}
+
+.videoFrame {
+  width: min(1180px, calc(100% - 80px));
+  margin: -72px auto 0;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.videoEmbed {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.storyHeader,
+.catalogHeader {
+  margin-bottom: 24px;
+}
+
+.storyGrid,
+.catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.storyCard,
+.catalogCard,
+.blueprintCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+    #101712;
+  border-radius: 24px;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.22);
+}
+
+.storyCard {
+  padding: 28px;
+  border-radius: 24px;
+}
+
+.storyCard h3,
+.catalogBody h3,
+.blueprintCard h3 {
+  color: #ffffff;
+  font-size: 1.35rem;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  margin-bottom: 12px;
+}
+
+.featureLayout,
+.blueprintLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(360px, 0.88fr);
+  gap: 30px;
+  align-items: center;
+}
+
+.featureMedia img {
+  width: 100%;
+  min-height: 460px;
+  object-fit: cover;
+  border-radius: 24px;
+}
+
+.featureCopy {
+  display: grid;
+  gap: 16px;
+}
+
+.catalogCard {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.catalogCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(37, 214, 111, 0.4);
+}
+
+.catalogImage {
+  width: 100%;
+  aspect-ratio: 1.22;
+  object-fit: cover;
+}
+
+.catalogBody {
+  padding: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.catalogMeta {
+  color: #9fd2ab;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.specStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.specPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ebf5ed;
+  font-size: 0.8rem;
+}
+
+.specPill strong {
+  margin-right: 4px;
+}
+
+.catalogFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.blueprintCopy {
+  display: grid;
+  gap: 16px;
+}
+
+.blueprintCard {
+  padding: 30px;
+  display: grid;
+  gap: 14px;
+}
+
+.blueprintIcon {
+  width: 54px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(33, 180, 84, 0.14);
+  color: #56ea83;
+}
+
+@media (max-width: 1100px) {
+  .storyGrid,
+  .catalogGrid,
+  .featureLayout,
+  .blueprintLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .heroContent {
+    margin-right: 0;
+    width: min(640px, 100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 0;
+  }
+
+  .heroContent {
+    min-height: auto;
+    width: 100%;
+    padding: 120px 20px 48px;
+    margin: 0;
+  }
+
+  .heroContent p,
+  .storyCard p,
+  .featureCopy p,
+  .catalogBody p,
+  .blueprintCopy p,
+  .blueprintCard p {
+    line-height: 1.6;
+  }
+
+  .storyCard p,
+  .featureCopy p,
+  .catalogBody p,
+  .blueprintCopy p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .videoFrame {
+    width: calc(100% - 24px);
+    margin-top: -36px;
+    border-radius: 18px;
+  }
+
+  .storyGrid,
+  .catalogGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroContent h1,
+  .storyHeader h2,
+  .featureCopy h2,
+  .catalogHeader h2,
+  .blueprintCopy h2 {
+    font-size: clamp(2.1rem, 10vw, 3.35rem);
+    line-height: 0.94;
+  }
+
+  .quickNavInner {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .quickNavItem {
+    flex: 0 0 auto;
+    min-height: 38px;
+    font-size: 0.76rem;
+  }
+
+  .quickNav,
+  .storySection,
+  .featureSection,
+  .catalogSection,
+  .blueprintSection {
+    padding: 42px 0;
+  }
+
+  .featureMedia img {
+    min-height: 260px;
+  }
+
+  .catalogImage {
+    aspect-ratio: 1.45;
+  }
+}
+
+/* Final premium refinement pass */
+.hero {
+  min-height: min(820px, calc(100vh - 76px));
+}
+
+.heroContent {
+  min-height: min(820px, calc(100vh - 76px));
+  width: min(620px, 100%);
+}
+
+.heroContent h1 {
+  max-width: 11ch;
+}
+
+.arrow {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.arrow:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.videoFrame {
+  position: relative;
+  background: #020502;
+}
+
+.videoPreviewButton,
+.videoEmbed {
+  position: absolute;
+  inset: 0;
+}
+
+.videoPreviewButton {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #020502;
+  color: #ffffff;
+}
+
+.videoPreviewButton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(37, 214, 111, 0.2), transparent 30%),
+    linear-gradient(180deg, rgba(2, 5, 2, 0.08), rgba(2, 5, 2, 0.46));
+}
+
+.videoPreviewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.videoPlayButton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: auto;
+  width: 170px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #071009;
+  font-weight: 900;
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.36);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+  }
+
+  .heroImage {
+    position: relative;
+    height: 280px;
+  }
+
+  .heroShade {
+    background: linear-gradient(180deg, rgba(3, 8, 4, 0.16), rgba(3, 8, 4, 0.86));
+  }
+
+  .heroContent {
+    min-height: auto;
+    padding: 28px 20px 42px;
+    background: linear-gradient(180deg, rgba(7, 18, 10, 0.76), rgba(7, 18, 10, 0.98));
+  }
+
+  .heroContent h1 {
+    max-width: 100%;
+  }
+
+  .arrow {
+    top: 216px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .videoBand {
+    padding: 34px 0;
+  }
+
+  .videoFrame {
+    margin: 0 auto;
+  }
+
+  .storyCard,
+  .blueprintCard,
+  .catalogCard {
+    border-radius: 20px;
+  }
+
+  .catalogFooter {
+    flex-direction: column;
+  }
+}
+
+/* Video iframe normalization */
+.videoEmbed {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .quickNavInner {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .quickNavItem {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+}

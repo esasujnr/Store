@@ -1,5 +1,6 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react'
+﻿import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react'
 import type { Product } from '@/lib/database.types'
+import { getProductPrice } from '@/lib/utils'
 
 export interface CartItem {
   product: Product
@@ -68,7 +69,7 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null)
 
-const STORAGE_KEY = 'volant_cart'
+const STORAGE_KEY = 'wingxtra_store_cart'
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [] })
@@ -90,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [state.items])
 
   const totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0)
-  const subtotal = state.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
+  const subtotal = state.items.reduce((sum, i) => sum + getProductPrice(i.product) * i.quantity, 0)
   const hasPhysical = state.items.some(i => i.product.fulfillment_type !== 'fdm')
   const hasDigital = state.items.some(i => i.product.fulfillment_type === 'fdm')
 

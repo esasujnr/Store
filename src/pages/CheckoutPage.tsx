@@ -1,28 +1,37 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingBag, CreditCard, MapPin } from 'lucide-react'
+import { AlertCircle, ShoppingBag, CreditCard, MapPin, Tag } from 'lucide-react'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { supabase } from '@/lib/supabase'
-import { formatCurrency, isDigital, isPhysical } from '@/lib/utils'
+import type { Discount, Product } from '@/lib/database.types'
+import {
+  calculateDiscountAmount,
+  canPurchaseQuantity,
+  convertBaseAmountForGateway,
+  formatCurrency,
+  getGatewayChargeCurrency,
+  getInventoryStatus,
+  getProductPrice,
+  getStoreRegionPaymentProvider,
+  isDigital,
+  isPhysical,
+  STORE_REGION_CONFIG,
+  type PaymentProvider,
+} from '@/lib/utils'
 import toast from 'react-hot-toast'
 import styles from './CheckoutPage.module.css'
-
-declare global {
-  interface Window {
-    PaystackPop: {
-      setup: (config: Record<string, unknown>) => { openIframe: () => void }
-    }
-  }
-}
 
 export default function CheckoutPage() {
   const { user, profile } = useAuth()
   const { items, subtotal, hasPhysical, clearCart } = useCart()
+  const { currency, storeRegion, convertFromBase, formatFromBase } = useCurrency()
   const navigate = useNavigate()
+  const siteUrl = ((import.meta as { env: Record<string, string | undefined> }).env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '')
 
   const savedAddresses = (profile?.shipping_addresses || []) as Array<{
     id: string; label: string; full_name: string; phone: string
@@ -39,15 +48,115 @@ export default function CheckoutPage() {
     address_line1: '',
     city: '',
     state: '',
-    country: 'Nigeria',
+    country: 'Ghana',
     postal_code: '',
   })
 
+  const [discountCode, setDiscountCode] = useState('')
+  const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null)
+  const [applyingDiscount, setApplyingDiscount] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const shippingAddress = selectedAddressId === 'new'
     ? newAddress
     : savedAddresses.find(a => a.id === selectedAddressId) || newAddress
+
+  const subtotalInCurrency = convertFromBase(subtotal)
+  const baseDiscountAmount = useMemo(() => calculateDiscountAmount(subtotal, appliedDiscount), [appliedDiscount, subtotal])
+  const paymentProvider = getStoreRegionPaymentProvider(storeRegion) as PaymentProvider
+  const chargeCurrency = getGatewayChargeCurrency(paymentProvider, currency)
+  const selectedStore = STORE_REGION_CONFIG[storeRegion]
+
+  const displayDiscountAmount = useMemo(() => {
+    if (!appliedDiscount) return 0
+
+    const minimum = convertFromBase(appliedDiscount.minimum_order_amount || 0)
+    if (subtotalInCurrency < minimum) return 0
+
+    if (appliedDiscount.discount_type === 'percent') {
+      return Math.min(subtotalInCurrency, Number((subtotalInCurrency * (appliedDiscount.value / 100)).toFixed(2)))
+    }
+
+    return Math.min(subtotalInCurrency, convertFromBase(appliedDiscount.value))
+  }, [appliedDiscount, convertFromBase, subtotalInCurrency])
+
+  const orderTotal = Math.max(0, Number((subtotalInCurrency - displayDiscountAmount).toFixed(2)))
+  const subtotalForCharge = convertBaseAmountForGateway(subtotal, paymentProvider, currency)
+  const discountAmountForCharge = convertBaseAmountForGateway(baseDiscountAmount, paymentProvider, currency)
+  const orderTotalForCharge = Math.max(0, Number((subtotalForCharge - discountAmountForCharge).toFixed(2)))
+  const chargeSummaryLabel = formatCurrency(orderTotalForCharge, chargeCurrency)
+  const chargeCurrencyDiffers = chargeCurrency !== currency
+
+  async function handleApplyDiscount() {
+    if (!discountCode.trim()) {
+      toast.error('Enter a discount code first')
+      return
+    }
+
+    setApplyingDiscount(true)
+    try {
+      const code = discountCode.trim().toUpperCase()
+      const { data, error } = await supabase
+        .from('discounts')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (error) throw error
+      if (!data) {
+        toast.error('Discount code not found')
+        setAppliedDiscount(null)
+        return
+      }
+
+      const discount = data as Discount
+      const now = Date.now()
+      if ((discount.starts_at && new Date(discount.starts_at).getTime() > now) || (discount.ends_at && new Date(discount.ends_at).getTime() < now)) {
+        toast.error('This discount is not active right now')
+        setAppliedDiscount(null)
+        return
+      }
+
+      const minimum = convertFromBase(discount.minimum_order_amount || 0)
+      if (subtotalInCurrency < minimum) {
+        toast.error(`This code requires at least ${formatFromBase(discount.minimum_order_amount || 0)}`)
+        setAppliedDiscount(null)
+        return
+      }
+
+      setAppliedDiscount(discount)
+      setDiscountCode(code)
+      toast.success('Discount applied')
+    } catch (err) {
+      console.error(err)
+      toast.error('Could not apply discount')
+    } finally {
+      setApplyingDiscount(false)
+    }
+  }
+
+  function clearDiscount() {
+    setAppliedDiscount(null)
+    setDiscountCode('')
+  }
+
+  async function verifyPayment(provider: PaymentProvider, payload: Record<string, string>) {
+    const { data, error } = await supabase.functions.invoke('verify-payment', {
+      body: {
+        provider,
+        ...payload,
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    if (!data?.success) {
+      throw new Error(data?.error || 'Payment could not be verified')
+    }
+  }
 
   async function handlePayment() {
     if (!user) return
@@ -58,7 +167,29 @@ export default function CheckoutPage() {
 
     setLoading(true)
     try {
-      // Create the order in Supabase first (pending)
+      const productIds = items.map(item => item.product.id)
+      const { data: freshProducts, error: stockError } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', productIds)
+
+      if (stockError) throw stockError
+      const freshById = new Map((freshProducts as Product[] | null || []).map(product => [product.id, product]))
+
+      for (const item of items) {
+        const freshProduct = freshById.get(item.product.id)
+        if (!freshProduct || !freshProduct.is_active) {
+          toast.error(`${item.product.name} is no longer available`)
+          setLoading(false)
+          return
+        }
+        if (!canPurchaseQuantity(freshProduct, item.quantity)) {
+          toast.error(`${freshProduct.name}: ${getInventoryStatus(freshProduct, item.quantity).label}`)
+          setLoading(false)
+          return
+        }
+      }
+
       const hasDigital = items.some(i => isDigital(i.product.fulfillment_type))
       const hasPhysicalItems = items.some(i => isPhysical(i.product.fulfillment_type))
 
@@ -67,12 +198,18 @@ export default function CheckoutPage() {
         .insert({
           user_id: user.id,
           status: 'pending',
-          total_amount: subtotal,
-          currency: 'NGN',
+          total_amount: orderTotalForCharge,
+          currency: chargeCurrency,
+          payment_provider: paymentProvider,
+          discount_code: appliedDiscount?.code || '',
+          discount_amount: discountAmountForCharge,
           has_digital: hasDigital,
           has_physical: hasPhysicalItems,
           shipping_address: hasPhysicalItems ? shippingAddress : null,
           shipping_status: hasPhysicalItems ? 'pending' : 'not_required',
+          notes: chargeCurrencyDiffers
+            ? `Storefront viewed in ${currency}. Checkout processed in ${chargeCurrency} via ${paymentProvider}.`
+            : '',
         })
         .select()
         .single()
@@ -80,14 +217,16 @@ export default function CheckoutPage() {
       if (orderError) throw orderError
       const order = orderData as { id: string }
 
-      // Insert order items
-      const orderItems = items.map(({ product, quantity }) => ({
+      const orderItems = items.map(({ product, quantity }) => {
+        const freshProduct = freshById.get(product.id) || product
+        return ({
         order_id: order.id,
-        product_id: product.id,
+        product_id: freshProduct.id,
         quantity,
-        unit_price: product.price,
-        fulfillment_type: product.fulfillment_type,
-      }))
+        unit_price: convertBaseAmountForGateway(getProductPrice(freshProduct), paymentProvider, currency),
+        fulfillment_type: freshProduct.fulfillment_type,
+      })
+      })
 
       const { error: itemsError } = await supabase
         .from('order_items')
@@ -95,46 +234,42 @@ export default function CheckoutPage() {
 
       if (itemsError) throw itemsError
 
-      // Load Paystack inline
-      const paystackPublicKey = (import.meta as { env: Record<string, string> }).env.VITE_PAYSTACK_PUBLIC_KEY
-      if (!paystackPublicKey) {
-        toast.error('Payment configuration missing')
-        setLoading(false)
+      if (paymentProvider === 'flutterwave') {
+        const { data, error } = await supabase.functions.invoke('initialize-flutterwave-checkout', {
+          body: {
+            order_id: order.id,
+            redirect_url: `${siteUrl}/orders/${order.id}?provider=flutterwave&verify=1`,
+            store_region: storeRegion,
+            customer: {
+              full_name: shippingAddress.full_name || profile?.full_name || user.email || 'Wingxtra Customer',
+              phone: shippingAddress.phone || '',
+              country: shippingAddress.country || '',
+            },
+          },
+        })
+
+        if (error || !data?.url) {
+          throw error || new Error(data?.error || 'Flutterwave checkout is unavailable')
+        }
+
+        window.location.href = data.url as string
         return
       }
 
-      const script = document.createElement('script')
-      script.src = 'https://js.paystack.co/v1/inline.js'
-      script.onload = () => {
-        const handler = window.PaystackPop.setup({
-          key: paystackPublicKey,
-          email: user.email,
-          amount: subtotal * 100, // kobo
-          currency: 'NGN',
-          ref: order.id,
-          metadata: { order_id: order.id },
-          callback: async (response: { reference: string }) => {
-            await supabase
-              .from('orders')
-              .update({ payment_reference: response.reference, status: 'paid' })
-              .eq('id', order.id)
+      const { data, error } = await supabase.functions.invoke('initialize-paystack-checkout', {
+        body: {
+          order_id: order.id,
+          callback_url: `${siteUrl}/orders/${order.id}?provider=paystack&verify=1&reference=${order.id}`,
+          cancel_url: `${siteUrl}/checkout?payment=cancelled&provider=paystack`,
+        },
+      })
 
-            clearCart()
-            navigate(`/orders/${order.id}`)
-            toast.success('Payment successful! Your order is confirmed.')
-          },
-          onClose: async () => {
-            await supabase
-              .from('orders')
-              .update({ status: 'cancelled' })
-              .eq('id', order.id)
-            setLoading(false)
-            toast('Payment cancelled')
-          },
-        })
-        handler.openIframe()
+      if (error || !data?.authorization_url) {
+        throw error || new Error(data?.error || 'Paystack checkout could not be initialized')
       }
-      document.head.appendChild(script)
+
+      window.location.href = data.authorization_url as string
+      return
     } catch (err) {
       console.error(err)
       toast.error('Something went wrong. Please try again.')
@@ -155,9 +290,7 @@ export default function CheckoutPage() {
           <h1 className={styles.title}>Checkout</h1>
 
           <div className={styles.layout}>
-            {/* Left */}
             <div>
-              {/* Shipping Address */}
               {hasPhysical && (
                 <section className={styles.section}>
                   <div className={styles.sectionHeader}>
@@ -242,41 +375,91 @@ export default function CheckoutPage() {
                 </section>
               )}
 
-              {/* Order items */}
               <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <ShoppingBag size={18} />
                   <h2>Order Items</h2>
                 </div>
                 <div className={styles.itemsList}>
-                  {items.map(({ product, quantity }) => (
-                    <div key={product.id} className={styles.orderItem}>
-                      <img
-                        src={product.image_url || 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=100'}
-                        alt={product.name}
-                        className={styles.itemImg}
-                      />
-                      <div className={styles.itemName}>
-                        <span>{product.name}</span>
-                        <span className={styles.itemQty}>×{quantity}</span>
+                  {items.map(({ product, quantity }) => {
+                    const linePrice = getProductPrice(product) * quantity
+                    return (
+                      <div key={product.id} className={styles.orderItem}>
+                        <img
+                          src={product.image_url || 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg?auto=compress&cs=tinysrgb&w=100'}
+                          alt={product.name}
+                          className={styles.itemImg}
+                        />
+                        <div className={styles.itemName}>
+                          <span>{product.name}</span>
+                          <span className={styles.itemQty}>x{quantity}</span>
+                        </div>
+                        <span className={styles.itemTotal}>
+                          {formatFromBase(linePrice)}
+                        </span>
                       </div>
-                      <span className={styles.itemTotal}>
-                        {formatCurrency(product.price * quantity)}
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             </div>
 
-            {/* Right: Summary */}
             <div className={styles.summary}>
               <h2>Payment Summary</h2>
+
+              <div className={styles.discountCard}>
+                <div className={styles.discountHeader}>
+                  <Tag size={16} />
+                  <span>Discount code</span>
+                </div>
+                <div className={styles.discountRowInline}>
+                  <Input
+                    placeholder="Enter code"
+                    value={discountCode}
+                    onChange={e => setDiscountCode(e.target.value.toUpperCase())}
+                  />
+                  <Button type="button" variant="secondary" onClick={handleApplyDiscount} loading={applyingDiscount}>
+                    Apply
+                  </Button>
+                </div>
+                {appliedDiscount && (
+                  <div className={styles.appliedDiscount}>
+                    <div>
+                      <strong>{appliedDiscount.code}</strong>
+                      <p>{appliedDiscount.description || 'Discount applied to this order.'}</p>
+                    </div>
+                    <button type="button" className={styles.clearDiscountBtn} onClick={clearDiscount}>Remove</button>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.paymentMethodCard}>
+                <div className={styles.paymentMethodHeader}>
+                  <CreditCard size={16} />
+                  <span>Store checkout route</span>
+                </div>
+                <div className={styles.paymentMethodList}>
+                  <div className={`${styles.paymentMethodButton} ${styles.paymentMethodButtonActive}`}>
+                    <div>
+                      <strong>{selectedStore.label}</strong>
+                      <p>{selectedStore.description}</p>
+                    </div>
+                    <span className={styles.methodTag}>{paymentProvider === 'paystack' ? 'Paystack' : 'Flutterwave'}</span>
+                  </div>
+                </div>
+              </div>
+
               <div className={styles.summaryRows}>
                 <div className={styles.summaryRow}>
                   <span>Subtotal</span>
-                  <span>{formatCurrency(subtotal)}</span>
+                  <span>{formatFromBase(subtotal)}</span>
                 </div>
+                {displayDiscountAmount > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span>Discount</span>
+                    <span>-{formatCurrency(displayDiscountAmount, currency)}</span>
+                  </div>
+                )}
                 {hasPhysical && (
                   <div className={styles.summaryRow}>
                     <span>Shipping</span>
@@ -286,7 +469,7 @@ export default function CheckoutPage() {
               </div>
               <div className={styles.summaryTotal}>
                 <span>Total</span>
-                <span>{formatCurrency(subtotal)}</span>
+                <span>{formatCurrency(orderTotal, currency)}</span>
               </div>
               <Button
                 size="lg"
@@ -295,10 +478,22 @@ export default function CheckoutPage() {
                 loading={loading}
               >
                 <CreditCard size={18} />
-                Pay with Paystack
+                {paymentProvider === 'flutterwave' ? `Pay with Flutterwave (${chargeCurrency})` : `Pay with Paystack (${chargeCurrency})`}
               </Button>
+              <div className={styles.currencyNote}>
+                <AlertCircle size={14} />
+                <p>
+                  {paymentProvider === 'paystack'
+                    ? chargeCurrencyDiffers
+                      ? `You are browsing in ${currency}, but this ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Paystack. Charge total: ${chargeSummaryLabel}.`
+                      : `This ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Paystack. Charge total: ${chargeSummaryLabel}.`
+                    : `This ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Flutterwave. Charge total: ${chargeSummaryLabel}.`}
+                </p>
+              </div>
               <p className={styles.secureNote}>
-                Secured by Paystack. Your payment info is never stored.
+                {paymentProvider === 'flutterwave'
+                  ? 'Secured by Flutterwave. Card and wallet details are handled on Flutterwave hosted checkout.'
+                  : 'Secured by Paystack. Your payment info is never stored by the storefront.'}
               </p>
             </div>
           </div>

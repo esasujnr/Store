@@ -1,4 +1,7 @@
 import { Helmet } from 'react-helmet-async'
+import { useLocation } from 'react-router-dom'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { getDefaultSiteContent } from '@/lib/siteContent'
 
 interface BreadcrumbItem {
   name: string
@@ -26,13 +29,11 @@ interface SEOProps {
   noIndex?: boolean
 }
 
-const SITE_NAME = 'VOLANT Store'
-const DEFAULT_DESCRIPTION = 'Premium drones, FDM 3D-printed parts, MJF components, and carbon fiber composites. Designed for performance, built for precision.'
-const SITE_URL = 'https://volant.store'
+const SITE_URL = (import.meta as { env: Record<string, string | undefined> }).env.VITE_SITE_URL || 'https://shop.wingxtra.com'
 
 export default function SEO({
   title,
-  description = DEFAULT_DESCRIPTION,
+  description,
   image,
   url,
   type = 'website',
@@ -40,9 +41,16 @@ export default function SEO({
   product,
   noIndex = false,
 }: SEOProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME
+  const location = useLocation()
+  const previewMode = location.search.includes('preview=draft') ? 'draft' : 'published'
+  const { data: globalContent } = useSiteContent('global_store', previewMode)
+  const globalDefaults = globalContent ?? getDefaultSiteContent('global_store')
+  const siteName = globalDefaults.seo.siteName
+  const fallbackDescription = globalDefaults.seo.defaultDescription
+  const fullTitle = title ? `${title} | ${siteName}` : siteName
+  const resolvedDescription = description || fallbackDescription
   const canonicalUrl = url ? `${SITE_URL}${url}` : SITE_URL
-  const ogImage = image || 'https://images.pexels.com/photos/1261799/pexels-photo-1261799.jpeg'
+  const ogImage = image || globalDefaults.seo.defaultImage
 
   const breadcrumbSchema = breadcrumbs
     ? {
@@ -68,7 +76,7 @@ export default function SEO({
         offers: {
           '@type': 'Offer',
           price: product.price,
-          priceCurrency: product.currency || 'NGN',
+          priceCurrency: product.currency || 'GHS',
           availability: `https://schema.org/${product.availability || 'InStock'}`,
           url: canonicalUrl,
         },
@@ -78,22 +86,22 @@ export default function SEO({
   return (
     <Helmet>
       <title>{fullTitle}</title>
-      <meta name="description" content={description} />
+      <meta name="description" content={resolvedDescription} />
       <link rel="canonical" href={canonicalUrl} />
       {noIndex && <meta name="robots" content="noindex,nofollow" />}
 
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:description" content={resolvedDescription} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:site_name" content={siteName} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:description" content={resolvedDescription} />
       <meta name="twitter:image" content={ogImage} />
 
       {/* JSON-LD */}

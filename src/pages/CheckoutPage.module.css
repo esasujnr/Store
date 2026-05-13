@@ -130,7 +130,6 @@
   white-space: nowrap;
 }
 
-/* Summary */
 .summary {
   background: var(--color-neutral-900);
   border: 1px solid var(--color-neutral-800);
@@ -147,6 +146,134 @@
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--color-neutral-50);
+}
+
+.discountCard {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  display: grid;
+  gap: 12px;
+}
+
+.paymentMethodCard {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  display: grid;
+  gap: 12px;
+}
+
+.paymentMethodHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-neutral-200);
+  font-weight: 600;
+}
+
+.paymentMethodList {
+  display: grid;
+  gap: 10px;
+}
+
+.paymentMethodButton {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  border-radius: 16px;
+  padding: 14px;
+  color: var(--color-neutral-200);
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.paymentMethodButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.16);
+}
+
+.paymentMethodButton strong {
+  display: block;
+  color: var(--color-neutral-50);
+  margin-bottom: 4px;
+}
+
+.paymentMethodButton p {
+  color: rgba(225, 232, 243, 0.72);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.paymentMethodButtonActive {
+  border-color: rgba(59,130,246,0.45);
+  background: rgba(59,130,246,0.1);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.18);
+}
+
+.methodTag {
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: var(--color-neutral-100);
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.discountHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-neutral-200);
+  font-weight: 600;
+}
+
+.discountRowInline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.appliedDiscount {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.18);
+}
+
+.appliedDiscount strong {
+  color: #f8fbff;
+}
+
+.appliedDiscount p {
+  margin-top: 4px;
+  color: rgba(225, 232, 243, 0.72);
+  font-size: 0.8125rem;
+}
+
+.clearDiscountBtn {
+  background: none;
+  border: none;
+  color: var(--color-accent-400);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .summaryRows {
@@ -177,6 +304,18 @@
   border-top: 1px solid var(--color-neutral-800);
 }
 
+.currencyNote {
+  display: flex;
+  gap: 10px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(225, 232, 243, 0.72);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
 .secureNote {
   font-size: 0.75rem;
   color: var(--color-neutral-600);
@@ -192,7 +331,65 @@
     position: static;
   }
 
-  .formRow {
+  .formRow,
+  .discountRowInline,
+  .appliedDiscount {
     grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+}
+
+/* Final premium refinement pass */
+.page {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(37, 214, 111, 0.12), transparent 34%),
+    linear-gradient(180deg, #050805 0%, #08100a 48%, #050805 100%);
+}
+
+.section,
+.summary,
+.discountCard,
+.paymentMethodCard,
+.addressCard,
+.appliedDiscount,
+.currencyNote {
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+    #101712;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.18);
+}
+
+.title,
+.sectionHeader h2,
+.summary h2,
+.paymentMethodButton strong,
+.summaryTotal {
+  color: #f6fff8;
+}
+
+.paymentMethodButtonActive,
+.addressCardSelected {
+  border-color: rgba(37, 214, 111, 0.52);
+  background: rgba(31, 185, 88, 0.14);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 0.95;
+  }
+
+  .section,
+  .summary {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .addressList,
+  .paymentMethodButton,
+  .orderItem {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

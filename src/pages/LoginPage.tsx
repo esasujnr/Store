@@ -21,10 +21,10 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error } = await signIn(email, password)
+    const { error: signInError } = await signIn(email, password)
     setLoading(false)
-    if (error) {
-      setError(error.message)
+    if (signInError) {
+      setError(signInError.message)
     } else {
       navigate(from, { replace: true })
     }
@@ -35,7 +35,7 @@ export default function LoginPage() {
       <SEO title="Sign In" url="/login" noIndex />
       <div className={styles.page}>
         <div className={styles.card}>
-          <div className={styles.logo}>▲ VOLANT</div>
+          <div className={styles.logo}>Wingxtra Store</div>
           <h1 className={styles.title}>Welcome back</h1>
           <p className={styles.subtitle}>Sign in to your account</p>
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
             <Input
               label="Password"
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
