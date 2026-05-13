@@ -17,6 +17,15 @@ export type CollectionItemContent = {
   image: string
 }
 
+export type NavCardContent = {
+  id: string
+  isVisible: boolean
+  label: string
+  description: string
+  href: string
+  image: string
+}
+
 export type PointContent = {
   title: string
   description: string
@@ -72,6 +81,8 @@ export type HomeVisibilitySettings = {
   newsletter: boolean
 }
 
+export type HomeSectionKey = keyof HomeVisibilitySettings
+
 export type HomeDesignSettings = {
   heroMinHeight: string
   heroTitleScale: string
@@ -82,12 +93,16 @@ export type HomeDesignSettings = {
   sectionSpacing: string
 }
 
+export type FeaturedProductMode = 'latest' | 'manual' | 'new_arrivals' | 'sale'
+export type BrandDropdownMode = 'automatic' | 'manual'
+
 export type HomePageContent = {
   seo: {
     title: string
     description: string
   }
   visibility: HomeVisibilitySettings
+  sectionOrder: HomeSectionKey[]
   design: HomeDesignSettings
   hero: {
     eyebrow: string
@@ -143,6 +158,9 @@ export type HomePageContent = {
     eyebrow: string
     title: string
     linkLabel: string
+    mode: FeaturedProductMode
+    productSlugs: string[]
+    maxItems: string
   }
   testimonials: {
     eyebrow: string
@@ -288,6 +306,9 @@ export type GlobalStoreContent = {
     brandsTitle: string
     brandsViewAllLabel: string
     maxBrandCards: string
+    brandMode: BrandDropdownMode
+    featuredBrandSlugs: string[]
+    productCards: NavCardContent[]
   }
   theme: {
     backgroundColor: string
@@ -380,6 +401,131 @@ export type SiteContentMap = {
   product_page_template: ProductPageTemplateContent
 }
 
+export const HOME_SECTION_LABELS: Record<HomeSectionKey, string> = {
+  collections: 'Collections',
+  featuredProducts: 'Featured Products',
+  storeFoundations: 'Store Foundations',
+  storySections: 'Story Sections',
+  deliveryTypes: 'Delivery Types',
+  processStory: 'Process Story',
+  testimonials: 'Testimonials',
+  community: 'Community',
+  faq: 'FAQ',
+  newsletter: 'Newsletter',
+}
+
+export const DEFAULT_HOME_SECTION_ORDER: HomeSectionKey[] = [
+  'collections',
+  'featuredProducts',
+  'storeFoundations',
+  'storySections',
+  'deliveryTypes',
+  'processStory',
+  'testimonials',
+  'community',
+  'faq',
+  'newsletter',
+]
+
+export const DEFAULT_NAV_PRODUCT_CARDS: NavCardContent[] = [
+  {
+    id: 'all_products',
+    isVisible: true,
+    label: 'All Products',
+    description: 'Open the complete UAV marketplace catalog.',
+    href: '/shop',
+    image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'wingxtra_aircraft',
+    isVisible: true,
+    label: 'Wingxtra Aircraft',
+    description: 'Wingxtra-designed UAV platforms and aircraft systems.',
+    href: '/drones',
+    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'fixed_wing_uavs',
+    isVisible: true,
+    label: 'Fixed-Wing UAVs',
+    description: 'Fixed-wing aircraft, trainers, mapping platforms, and FPV airframes.',
+    href: '/collection/fixed_wing_uavs',
+    image: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'vtol_uavs',
+    isVisible: true,
+    label: 'VTOL UAVs',
+    description: 'Hybrid takeoff aircraft, VTOL frames, and transition platforms.',
+    href: '/collection/vtol_uavs',
+    image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'multirotor_uavs',
+    isVisible: true,
+    label: 'Multirotor UAVs',
+    description: 'Quadcopters, hexacopters, frames, and multirotor accessories.',
+    href: '/collection/multirotor_uavs',
+    image: 'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'airframes_kits',
+    isVisible: true,
+    label: 'Airframes & Kits',
+    description: 'EPO, composite, MJF, and kit-format airframes.',
+    href: '/collection/airframes_kits',
+    image: 'https://images.unsplash.com/photo-1533069027836-fa937181a8ce?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'additive_manufacturing',
+    isVisible: true,
+    label: 'Additive Manufacturing',
+    description: 'STL files, FDM printable packs, MJF parts, and printed accessories.',
+    href: '/collection/additive_manufacturing',
+    image: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'avionics_flight_control',
+    isVisible: true,
+    label: 'Avionics & Flight Control',
+    description: 'Flight controllers, receivers, autopilot stacks, ESCs, and servos.',
+    href: '/collection/avionics_flight_control',
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'propulsion_systems',
+    isVisible: true,
+    label: 'Propulsion Systems',
+    description: 'Brushless motors, propellers, ESCs, and propulsion hardware.',
+    href: '/collection/propulsion_systems',
+    image: 'https://images.unsplash.com/photo-1581092335878-2d9ff86ca2bf?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'payload_imaging_telemetry',
+    isVisible: true,
+    label: 'Payload, Imaging & Telemetry',
+    description: 'Cameras, mapping payloads, telemetry radios, and survey electronics.',
+    href: '/collection/payload_imaging_telemetry',
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'recovery_safety',
+    isVisible: true,
+    label: 'Recovery & Safety',
+    description: 'Parachutes, recovery systems, launch aids, and safety equipment.',
+    href: '/collection/recovery_safety',
+    image: 'https://images.unsplash.com/photo-1533309907656-7b1c2ee56ddf?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    id: 'winches_mission_systems',
+    isVisible: true,
+    label: 'Winches & Mission Systems',
+    description: 'Winches, release systems, payload drop modules, and mission accessories.',
+    href: '/collection/winches_mission_systems',
+    image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=900&q=80',
+  },
+]
+
 export const defaultSiteContent: SiteContentMap = {
   home_page: {
     seo: {
@@ -398,6 +544,7 @@ export const defaultSiteContent: SiteContentMap = {
       faq: true,
       newsletter: true,
     },
+    sectionOrder: DEFAULT_HOME_SECTION_ORDER,
     design: {
       heroMinHeight: '720px',
       heroTitleScale: '1',
@@ -580,6 +727,9 @@ export const defaultSiteContent: SiteContentMap = {
       eyebrow: 'Featured Products',
       title: 'Popular parts and file packs',
       linkLabel: 'Open full catalog',
+      mode: 'latest',
+      productSlugs: [],
+      maxItems: '6',
     },
     testimonials: {
       eyebrow: 'What Our Community Says',
@@ -781,6 +931,9 @@ export const defaultSiteContent: SiteContentMap = {
       brandsTitle: 'Preview curated UAV brands',
       brandsViewAllLabel: 'View all brands',
       maxBrandCards: '8',
+      brandMode: 'automatic',
+      featuredBrandSlugs: [],
+      productCards: DEFAULT_NAV_PRODUCT_CARDS,
     },
     theme: {
       backgroundColor: '#020603',

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ChevronDown, LogOut, Menu, ShieldCheck, ShoppingCart, User, X } from 'lucide-react'
-import { NAV_PRODUCT_CARDS, getBrandSlug, getProductBrand } from '@/lib/catalog'
+import { getBrandSlug, getProductBrand } from '@/lib/catalog'
 import { useMarketplaceBrands, useProducts } from '@/hooks/useProducts'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import { fallbackProducts } from '@/lib/fallbackCatalog'
@@ -26,7 +26,7 @@ export default function Navbar() {
   const { data: productsData } = useProducts()
   const { data: brands } = useMarketplaceBrands(true)
   const navProducts = productsData?.length ? productsData : fallbackProducts
-  const productCards = NAV_PRODUCT_CARDS.filter(card => card.value !== 'new_arrivals' && card.value !== 'brands')
+  const productCards = content.navbar.productCards.filter(card => card.isVisible)
   const maxBrandCards = Number.parseInt(content.navbar.maxBrandCards || '8', 10) || 8
 
   const brandCards = useMemo(() => {
@@ -60,8 +60,18 @@ export default function Navbar() {
       })
     }
 
-    return [...byName.values()].sort((a, b) => (b.count - a.count) || a.name.localeCompare(b.name)).slice(0, maxBrandCards)
-  }, [brands, maxBrandCards, navProducts])
+    const sortedBrands = [...byName.values()].sort((a, b) => (b.count - a.count) || a.name.localeCompare(b.name))
+
+    if (content.navbar.brandMode === 'manual' && content.navbar.featuredBrandSlugs.length > 0) {
+      const bySlug = new Map(sortedBrands.map(brand => [brand.slug, brand]))
+      const selected = content.navbar.featuredBrandSlugs
+        .map(slug => bySlug.get(slug))
+        .filter((brand): brand is (typeof sortedBrands)[number] => Boolean(brand))
+      if (selected.length > 0) return selected.slice(0, maxBrandCards)
+    }
+
+    return sortedBrands.slice(0, maxBrandCards)
+  }, [brands, content.navbar.brandMode, content.navbar.featuredBrandSlugs, maxBrandCards, navProducts])
 
   return (
     <header className={styles.header}>
@@ -96,7 +106,7 @@ export default function Navbar() {
                   </div>
                   <div className={styles.megaGrid}>
                     {productCards.map(card => (
-                      <Link key={card.value} to={card.href || '/shop'} className={styles.megaCard} onClick={() => setProductsOpen(false)}>
+                      <Link key={card.id} to={card.href || '/shop'} className={styles.megaCard} onClick={() => setProductsOpen(false)}>
                         {card.image && (
                           <span className={styles.cardImage}>
                             <img src={card.image} alt="" loading="lazy" />
@@ -207,7 +217,7 @@ export default function Navbar() {
           {content.navbar.showNewArrivals && <Link to="/collection/new-arrivals" onClick={() => setMenuOpen(false)}>{content.navbar.newArrivalsLabel}</Link>}
           {content.navbar.showProducts && <div className={styles.mobileGroupTitle}>{content.navbar.productsLabel}</div>}
           {content.navbar.showProducts && productCards.map(card => (
-            <Link key={card.value} to={card.href || '/shop'} onClick={() => setMenuOpen(false)}>{card.label}</Link>
+            <Link key={card.id} to={card.href || '/shop'} onClick={() => setMenuOpen(false)}>{card.label}</Link>
           ))}
           {content.navbar.showBrands && <div className={styles.mobileGroupTitle}>{content.navbar.brandsLabel}</div>}
           {content.navbar.showBrands && <Link to="/collection/brands" onClick={() => setMenuOpen(false)}>{content.navbar.brandsViewAllLabel}</Link>}

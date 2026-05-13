@@ -1,23 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Eye, FileText, Globe2, History, Plus, RotateCcw, Save, Send, Trash2, Undo2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ExternalLink, Eye, FileText, Globe2, History, Plus, RotateCcw, Save, Send, Trash2, Undo2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import { useAdminSiteContent } from '@/hooks/useSiteContent'
+import { useMarketplaceBrands, useProducts } from '@/hooks/useProducts'
 import {
+  type BrandDropdownMode,
+  DEFAULT_HOME_SECTION_ORDER,
+  HOME_SECTION_LABELS,
   deepMergeContent,
   getDefaultSiteContent,
   type CollectionItemContent,
   type ContentKey,
   type DronesPageContent,
   type FaqContent,
+  type FeaturedProductMode,
   type GlobalStoreContent,
   type HeroSlideContent,
   type HighlightContent,
   type HomePageContent,
+  type HomeSectionKey,
   type LinkContent,
+  type NavCardContent,
   type PointContent,
   type ProductPageTemplateContent,
   type ShopPageContent,
@@ -78,6 +85,15 @@ function replaceItem<T>(items: T[], index: number, nextItem: T) {
 
 function removeItem<T>(items: T[], index: number) {
   return items.filter((_, itemIndex) => itemIndex !== index)
+}
+
+function moveItem<T>(items: T[], index: number, direction: -1 | 1) {
+  const nextIndex = index + direction
+  if (nextIndex < 0 || nextIndex >= items.length) return items
+  const next = [...items]
+  const [item] = next.splice(index, 1)
+  next.splice(nextIndex, 0, item)
+  return next
 }
 
 function Field({
@@ -200,6 +216,179 @@ function LinksEditor({
               <Field label="Link" value={item.href} onChange={next => onChange(replaceItem(items, index, { ...item, href: next }))} />
             </div>
           </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SectionOrderEditor({
+  order,
+  visibility,
+  onOrderChange,
+  onVisibilityChange,
+}: {
+  order: HomeSectionKey[]
+  visibility: Record<HomeSectionKey, boolean>
+  onOrderChange: (next: HomeSectionKey[]) => void
+  onVisibilityChange: (next: Record<HomeSectionKey, boolean>) => void
+}) {
+  const normalizedOrder = [
+    ...order.filter((key): key is HomeSectionKey => DEFAULT_HOME_SECTION_ORDER.includes(key as HomeSectionKey)),
+    ...DEFAULT_HOME_SECTION_ORDER.filter(key => !order.includes(key)),
+  ]
+
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionCardHeader}>
+        <div>
+          <h3>Homepage section manager</h3>
+          <p>Choose which homepage blocks show and drag-like reorder them with the move buttons. The hero stays fixed at the top.</p>
+        </div>
+      </div>
+      <div className={styles.orderList}>
+        {normalizedOrder.map((key, index) => (
+          <article key={key} className={styles.orderItem}>
+            <div>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <strong>{HOME_SECTION_LABELS[key]}</strong>
+              <small>{visibility[key] ? 'Visible on homepage' : 'Hidden from homepage'}</small>
+            </div>
+            <div className={styles.orderActions}>
+              <button type="button" className={styles.iconBtn} onClick={() => onOrderChange(moveItem(normalizedOrder, index, -1))} disabled={index === 0}>
+                <ArrowUp size={14} />
+              </button>
+              <button type="button" className={styles.iconBtn} onClick={() => onOrderChange(moveItem(normalizedOrder, index, 1))} disabled={index === normalizedOrder.length - 1}>
+                <ArrowDown size={14} />
+              </button>
+              <ToggleField
+                label="Show"
+                checked={visibility[key]}
+                onChange={checked => onVisibilityChange({ ...visibility, [key]: checked })}
+              />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function NavCardsEditor({ items, onChange }: { items: NavCardContent[]; onChange: (next: NavCardContent[]) => void }) {
+  const addCard = () => onChange([
+    ...items,
+    {
+      id: `custom-${Date.now()}`,
+      isVisible: true,
+      label: 'New dropdown card',
+      description: 'Describe this collection or store destination.',
+      href: '/shop',
+      image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=900&q=80',
+    },
+  ])
+
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionCardHeader}>
+        <div>
+          <h3>Products dropdown cards</h3>
+          <p>Control the cards, order, images, labels, and links shown inside the premium Products mega menu.</p>
+        </div>
+        <button type="button" className={styles.subtleBtn} onClick={addCard}>
+          <Plus size={14} /> Add Card
+        </button>
+      </div>
+      <div className={styles.stack}>
+        {items.map((item, index) => (
+          <div key={`${item.id}-${index}`} className={styles.editorCard}>
+            <div className={styles.editorHeader}>
+              <div>
+                <h4>{item.label || `Dropdown card ${index + 1}`}</h4>
+                <p>{item.href}</p>
+              </div>
+              <div className={styles.revisionActions}>
+                <button type="button" className={styles.iconBtn} onClick={() => onChange(moveItem(items, index, -1))} disabled={index === 0}>
+                  <ArrowUp size={14} />
+                </button>
+                <button type="button" className={styles.iconBtn} onClick={() => onChange(moveItem(items, index, 1))} disabled={index === items.length - 1}>
+                  <ArrowDown size={14} />
+                </button>
+                <button type="button" className={styles.iconBtn} onClick={() => onChange(removeItem(items, index))}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+            <ToggleField
+              label="Show this dropdown card"
+              checked={item.isVisible}
+              onChange={checked => onChange(replaceItem(items, index, { ...item, isVisible: checked }))}
+            />
+            <div className={styles.twoColumn}>
+              <Field label="Card label" value={item.label} onChange={next => onChange(replaceItem(items, index, { ...item, label: next }))} />
+              <Field label="Link" value={item.href} onChange={next => onChange(replaceItem(items, index, { ...item, href: next }))} />
+            </div>
+            <Field label="Image URL" value={item.image} onChange={next => onChange(replaceItem(items, index, { ...item, image: next }))} />
+            <TextareaField label="Description" rows={3} value={item.description} onChange={next => onChange(replaceItem(items, index, { ...item, description: next }))} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BrandDropdownControl({
+  navbar,
+  onChange,
+}: {
+  navbar: GlobalStoreContent['navbar']
+  onChange: (next: GlobalStoreContent['navbar']) => void
+}) {
+  const { data: brands = [] } = useMarketplaceBrands(true)
+  const selectedSlugs = new Set(navbar.featuredBrandSlugs)
+
+  const toggleBrand = (slug: string, checked: boolean) => {
+    const nextSlugs = checked
+      ? [...navbar.featuredBrandSlugs, slug]
+      : navbar.featuredBrandSlugs.filter(item => item !== slug)
+    onChange({ ...navbar, featuredBrandSlugs: nextSlugs })
+  }
+
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionCardHeader}>
+        <div>
+          <h3>Brands dropdown control</h3>
+          <p>Choose whether the Brands mega menu is automatic or limited to hand-picked brands.</p>
+        </div>
+      </div>
+      <div className={styles.twoColumn}>
+        <label className={styles.field}>
+          <span>Brand display mode</span>
+          <select
+            className={styles.select}
+            value={navbar.brandMode}
+            onChange={event => onChange({ ...navbar, brandMode: event.target.value as BrandDropdownMode })}
+          >
+            <option value="automatic">Automatic by product count</option>
+            <option value="manual">Manual brand selection</option>
+          </select>
+        </label>
+        <Field label="Maximum brand cards in dropdown" value={navbar.maxBrandCards} onChange={next => onChange({ ...navbar, maxBrandCards: next })} />
+      </div>
+      <div className={styles.productPickGrid}>
+        {brands.map(brand => (
+          <label key={brand.id} className={styles.productPickItem}>
+            <input
+              type="checkbox"
+              checked={selectedSlugs.has(brand.slug)}
+              onChange={event => toggleBrand(brand.slug, event.target.checked)}
+            />
+            <img src={brand.logo_url || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80'} alt="" />
+            <span>
+              <strong>{brand.name}</strong>
+              <small>{brand.slug}</small>
+            </span>
+          </label>
         ))}
       </div>
     </div>
@@ -577,6 +766,67 @@ function FaqEditor({ items, onChange }: { items: FaqContent[]; onChange: (next: 
   )
 }
 
+function FeaturedProductsControl({
+  content,
+  onChange,
+}: {
+  content: HomePageContent['featuredProducts']
+  onChange: (next: HomePageContent['featuredProducts']) => void
+}) {
+  const { data: products = [] } = useProducts()
+  const selectedSlugs = new Set(content.productSlugs)
+
+  const toggleProduct = (slug: string, checked: boolean) => {
+    const nextSlugs = checked
+      ? [...content.productSlugs, slug]
+      : content.productSlugs.filter(item => item !== slug)
+    onChange({ ...content, productSlugs: nextSlugs })
+  }
+
+  return (
+    <div className={styles.sectionCard}>
+      <div className={styles.sectionCardHeader}>
+        <div>
+          <h3>Featured product control</h3>
+          <p>Choose whether the homepage product rail is automatic or manually curated from real products.</p>
+        </div>
+      </div>
+      <div className={styles.twoColumn}>
+        <label className={styles.field}>
+          <span>Selection mode</span>
+          <select
+            className={styles.select}
+            value={content.mode}
+            onChange={event => onChange({ ...content, mode: event.target.value as FeaturedProductMode })}
+          >
+            <option value="latest">Latest active products</option>
+            <option value="manual">Manual selection</option>
+            <option value="new_arrivals">New arrivals</option>
+            <option value="sale">On sale</option>
+          </select>
+        </label>
+        <Field label="Maximum products shown" value={content.maxItems} onChange={next => onChange({ ...content, maxItems: next })} />
+      </div>
+      <div className={styles.productPickGrid}>
+        {products.map(product => (
+          <label key={product.id} className={styles.productPickItem}>
+            <input
+              type="checkbox"
+              checked={selectedSlugs.has(product.slug)}
+              onChange={event => toggleProduct(product.slug, event.target.checked)}
+            />
+            <img src={product.image_url} alt="" />
+            <span>
+              <strong>{product.name}</strong>
+              <small>{product.slug}</small>
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function HomeContentEditor({ content, onChange }: { content: HomePageContent; onChange: (next: HomePageContent) => void }) {
   const deliveryItems = content.deliveryTypes.items
   return (
@@ -589,24 +839,12 @@ function HomeContentEditor({ content, onChange }: { content: HomePageContent; on
         </div>
       </div>
 
-      <div className={styles.sectionCard}>
-        <div className={styles.sectionCardHeader}>
-          <div>
-            <h3>Homepage section visibility</h3>
-            <p>Hide unfinished homepage sections while you stock real products, media, and copy.</p>
-          </div>
-        </div>
-        <div className={styles.toggleGrid}>
-          {Object.entries(content.visibility).map(([key, value]) => (
-            <ToggleField
-              key={key}
-              label={key.replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase())}
-              checked={value}
-              onChange={next => onChange({ ...content, visibility: { ...content.visibility, [key]: next } })}
-            />
-          ))}
-        </div>
-      </div>
+      <SectionOrderEditor
+        order={content.sectionOrder}
+        visibility={content.visibility}
+        onOrderChange={next => onChange({ ...content, sectionOrder: next })}
+        onVisibilityChange={next => onChange({ ...content, visibility: next })}
+      />
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}>
@@ -788,6 +1026,11 @@ function HomeContentEditor({ content, onChange }: { content: HomePageContent; on
         </div>
         <Field label="Link label" value={content.featuredProducts.linkLabel} onChange={next => onChange({ ...content, featuredProducts: { ...content.featuredProducts, linkLabel: next } })} />
       </div>
+
+      <FeaturedProductsControl
+        content={content.featuredProducts}
+        onChange={next => onChange({ ...content, featuredProducts: next })}
+      />
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Testimonials heading</h3><p>Edit the intro above the testimonial cards.</p></div></div>
@@ -1133,8 +1376,17 @@ function GlobalContentEditor({ content, onChange }: { content: GlobalStoreConten
           <Field label="View all products label" value={content.navbar.megaViewAllLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, megaViewAllLabel: next } })} />
           <Field label="View all brands label" value={content.navbar.brandsViewAllLabel} onChange={next => onChange({ ...content, navbar: { ...content.navbar, brandsViewAllLabel: next } })} />
         </div>
-        <Field label="Maximum brand cards in dropdown" value={content.navbar.maxBrandCards} onChange={next => onChange({ ...content, navbar: { ...content.navbar, maxBrandCards: next } })} />
       </div>
+
+      <NavCardsEditor
+        items={content.navbar.productCards}
+        onChange={next => onChange({ ...content, navbar: { ...content.navbar, productCards: next } })}
+      />
+
+      <BrandDropdownControl
+        navbar={content.navbar}
+        onChange={next => onChange({ ...content, navbar: next })}
+      />
 
       <div className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Store theme</h3><p>Change key colors and surface settings globally. Use carefully; this controls the storefront feel.</p></div></div>
