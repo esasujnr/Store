@@ -24,7 +24,7 @@ import {
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { useBundleItems, useProduct, useProductMedia, useProductReviews } from '@/hooks/useProducts'
+import { useBundleItems, useProduct, useProductMedia, useProductReviews, useProducts } from '@/hooks/useProducts'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
@@ -60,6 +60,11 @@ type TemplateGuide = {
   title: string
   description: string
   items: string[]
+}
+
+type ProductFaq = {
+  question: string
+  answer: string
 }
 
 const RICH_SPEC_KEYS = new Set([
@@ -103,6 +108,11 @@ const RICH_SPEC_KEYS = new Set([
   'video_title',
   'video_description',
   'manufacturing_notes',
+  'technical_specs',
+  'product_faqs',
+  'product_page_visibility',
+  'product_page_layout',
+  'recommended_product_slugs',
 ])
 
 function toTitleCase(value: string) {
@@ -297,11 +307,103 @@ function getAudienceNotes(product: Product, specs: SpecRecord) {
   return { forBuilders, notFor }
 }
 
+function getManagedSpecs(value: unknown): FactCard[] {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => {
+        if (item && typeof item === 'object') {
+          const row = item as Record<string, unknown>
+          return {
+            label: String(row.label || row.name || row.key || '').trim(),
+            value: String(row.value || row.description || '').trim(),
+          }
+        }
+        const text = String(item).trim()
+        const separatorIndex = text.indexOf(':')
+        return separatorIndex === -1
+          ? { label: text, value: '' }
+          : { label: text.slice(0, separatorIndex).trim(), value: text.slice(separatorIndex + 1).trim() }
+      })
+      .filter(item => item.label || item.value)
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([label, specValue]) => ({ label: toTitleCase(label), value: String(specValue) }))
+      .filter(item => item.label && item.value)
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/\r?\n/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .map(item => {
+        const separatorIndex = item.indexOf(':')
+        return separatorIndex === -1
+          ? { label: item, value: '' }
+          : { label: item.slice(0, separatorIndex).trim(), value: item.slice(separatorIndex + 1).trim() }
+      })
+      .filter(item => item.label || item.value)
+  }
+
+  return []
+}
+
 function getTechnicalSpecs(specs: SpecRecord) {
-  return Object.entries(specs)
+  const managedSpecs = getManagedSpecs(specs.technical_specs)
+  const fallbackSpecs = Object.entries(specs)
     .filter(([, value]) => value != null && value !== '')
     .filter(([key, value]) => !RICH_SPEC_KEYS.has(key) && !Array.isArray(value) && typeof value !== 'object')
     .map(([key, value]) => ({ label: toTitleCase(key), value: String(value) }))
+
+  return [...managedSpecs, ...fallbackSpecs]
+}
+
+function getProductFaqs(specs: SpecRecord): ProductFaq[] {
+  const value = specs.product_faqs
+
+  if (Array.isArray(value)) {
+    return value
+      .map(item => {
+        if (item && typeof item === 'object') {
+          const row = item as Record<string, unknown>
+          return {
+            question: String(row.question || row.title || '').trim(),
+            answer: String(row.answer || row.body || row.description || '').trim(),
+          }
+        }
+        return { question: String(item).trim(), answer: '' }
+      })
+      .filter(item => item.question && item.answer)
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/\r?\n/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .map(item => {
+        const [question = '', ...answerParts] = item.split('|')
+        return { question: question.trim(), answer: answerParts.join('|').trim() }
+      })
+      .filter(item => item.question && item.answer)
+  }
+
+  return []
+}
+
+function getProductVisibility<T extends Record<string, boolean>>(templateVisibility: T, specs: SpecRecord): T {
+  const overrides = specs.product_page_visibility
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) return templateVisibility
+  const overrideMap = overrides as Record<string, unknown>
+  return Object.keys(templateVisibility).reduce<T>(
+    (next, key) => ({
+      ...next,
+      [key]: typeof overrideMap[key] === 'boolean' ? Boolean(overrideMap[key]) : next[key],
+    }),
+    { ...templateVisibility },
+  )
 }
 
 function getTemplateGuide(product: Product, specs: SpecRecord): TemplateGuide {
@@ -419,6 +521,7 @@ export default function ProductPage() {
   const displayProduct = product ?? fallbackProduct
   const showLoading = isLoading && !displayProduct
   const { data: bundleItems } = useBundleItems(displayProduct?.id ?? '')
+  const { data: allProducts = [] } = useProducts()
   const { data: reviews = [] } = useProductReviews(displayProduct?.id ?? '')
   const { data: productMedia = [] } = useProductMedia(product?.id, true)
   const { addItem, isInCart } = useCart()
@@ -522,6 +625,13 @@ export default function ProductPage() {
   const factCards = useMemo(() => (displayProduct ? getFactCards(displayProduct as Product, specs) : []), [displayProduct, specs])
   const audienceNotes = useMemo(() => (displayProduct ? getAudienceNotes(displayProduct as Product, specs) : { forBuilders: '', notFor: '' }), [displayProduct, specs])
   const technicalSpecs = useMemo(() => getTechnicalSpecs(specs), [specs])
+  const productVisibility = useMemo(() => getProductVisibility(templateVisibility, specs), [templateVisibility, specs])
+  const productFaqs = useMemo(() => getProductFaqs(specs), [specs])
+  const manualRecommendedProducts = useMemo(() => {
+    const slugs = new Set(getSpecList(specs, ['recommended_product_slugs']))
+    if (!slugs.size) return []
+    return allProducts.filter(item => slugs.has(item.slug) && item.id !== displayProduct?.id)
+  }, [allProducts, displayProduct?.id, specs])
   const averageRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0
 
   if (showLoading) return <LoadingSpinner fullPage />
@@ -614,7 +724,10 @@ export default function ProductPage() {
     })
   }
 
-  if (displayProduct.is_drone_product) {
+  const productPageLayout = getSpecText(specs, ['product_page_layout'], 'auto')
+  const useAircraftLayout = productPageLayout === 'aircraft' || (displayProduct.is_drone_product && productPageLayout !== 'standard')
+
+  if (useAircraftLayout) {
     const droneGallery = galleryImages.length
       ? galleryImages
       : [
@@ -622,6 +735,7 @@ export default function ProductPage() {
           'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1400&q=80',
         ]
     const recommendedParts = (bundleItems ?? []).slice(0, 4)
+    const manualRecommendedParts = manualRecommendedProducts.slice(0, 4)
     const overviewText = productOverviewText
     const specRows = showTechnicalSpecs
       ? technicalSpecs
@@ -667,7 +781,7 @@ export default function ProductPage() {
                 {productAdditiveLabel && <span>{productAdditiveLabel}</span>}
                 {isNewArrival(displayProduct) && <span>New arrival</span>}
               </div>
-              {templateVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
+              {productVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
 
               <div className={styles.aircraftHeroFacts}>
                 {factCards.slice(0, 4).map(item => (
@@ -713,7 +827,7 @@ export default function ProductPage() {
             <a href="#shopping-list">Parts</a>
           </nav>
 
-          {templateVisibility.templateGuide && (
+          {productVisibility.templateGuide && (
           <section className={styles.templateGuideSection}>
             <div className="container">
               <div className={styles.templateGuideLayout}>
@@ -735,7 +849,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.detailCards && (
+          {productVisibility.detailCards && (
           <section id="overview" className={styles.aircraftBand}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
@@ -765,7 +879,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.video && (
+          {productVisibility.video && (
           <section id="video" className={styles.aircraftVideoSection}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
@@ -806,7 +920,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.dossier && (
+          {productVisibility.dossier && (
           <section id="files" className={styles.aircraftBand}>
             <div className="container">
               <div className={styles.aircraftFileGrid}>
@@ -844,7 +958,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.technicalSpecs && (
+          {productVisibility.technicalSpecs && (
           <section id="specs" className={styles.aircraftSpecSection}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
@@ -863,7 +977,27 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.bundles && (
+          {productFaqs.length > 0 && (
+            <section className={styles.aircraftFaqSection}>
+              <div className="container">
+                <div className={styles.aircraftSectionHeader}>
+                  <span className={styles.aircraftEyebrow}>Buyer questions</span>
+                  <h2>Product FAQ</h2>
+                  <p>Keep the key buying answers on the product page so customers do not have to leave the flow.</p>
+                </div>
+                <div className={styles.productFaqGrid}>
+                  {productFaqs.map(item => (
+                    <article key={item.question} className={styles.productFaqItem}>
+                      <h3>{item.question}</h3>
+                      <p>{item.answer}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {productVisibility.bundles && (
           <section id="shopping-list" className={styles.aircraftRecommendedSection}>
             <div className="container">
               <div className={styles.aircraftSectionHeader}>
@@ -871,9 +1005,9 @@ export default function ProductPage() {
                 <h2>Recommended parts</h2>
                 <p>Keep the buyer moving from aircraft choice to the parts needed for a complete build.</p>
               </div>
-              {recommendedParts.length ? (
+              {recommendedParts.length || manualRecommendedParts.length ? (
                 <div className={styles.aircraftRecommendedGrid}>
-                  {recommendedParts.map(item => {
+                  {recommendedParts.length ? recommendedParts.map(item => {
                     const recommended = item.electronic_product as Product | null
                     if (!recommended) return null
                     return (
@@ -887,7 +1021,17 @@ export default function ProductPage() {
                         <ArrowRight size={18} />
                       </Link>
                     )
-                  })}
+                  }) : manualRecommendedParts.map(recommended => (
+                    <Link key={recommended.id} to={`/product/${recommended.slug}`} className={styles.aircraftRecommendedCard}>
+                      <img src={recommended.image_url} alt={recommended.name} />
+                      <div>
+                        <span>{recommended.category?.name || getFamilyLabel(getProductFamily(recommended))}</span>
+                        <h3>{recommended.name}</h3>
+                        <p>{formatFromBase(getProductPrice(recommended))}</p>
+                      </div>
+                      <ArrowRight size={18} />
+                    </Link>
+                  ))}
                 </div>
               ) : (
                 <div className={styles.aircraftEmptyParts}>
@@ -984,7 +1128,7 @@ export default function ProductPage() {
                   ))}
                 </div>
               )}
-              {templateVisibility.assuranceBar && (
+              {productVisibility.assuranceBar && (
                 <div className={styles.assuranceBar}>
                   <div><ShieldCheck size={16} /> {templateLabels.assuranceOne}</div>
                   <div><BadgeCheck size={16} /> {templateLabels.assuranceTwo}</div>
@@ -1010,7 +1154,7 @@ export default function ProductPage() {
 
               <h1 className={styles.title}>{displayProduct.name}</h1>
               <p className={styles.description}>{displayProduct.description}</p>
-              {templateVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
+              {productVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
 
               <div className={styles.priceStack}>
                 <p className={styles.price}>{formatFromBase(effectivePrice)}</p>
@@ -1031,7 +1175,7 @@ export default function ProductPage() {
                 ))}
               </div>
 
-              {templateVisibility.beforeYouBuy && (
+              {productVisibility.beforeYouBuy && (
               <div className={styles.beforeYouBuy}>
                 <div className={styles.beforeYouBuyHeader}>
                   <CircleHelp size={16} />
@@ -1092,7 +1236,7 @@ export default function ProductPage() {
             </section>
           </div>
 
-          {templateVisibility.templateGuide && (
+          {productVisibility.templateGuide && (
           <section className={styles.templateGuideSection}>
             <div className={styles.templateGuideLayout}>
               <div className={styles.templateGuideCopy}>
@@ -1112,7 +1256,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.dossier && (
+          {productVisibility.dossier && (
           <section className={styles.dossierSection}>
             <article className={styles.dossierStory}>
               <span className={styles.dossierEyebrow}>{templateLabels.productStoryEyebrow}</span>
@@ -1150,7 +1294,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.video && (
+          {productVisibility.video && (
           <section className={styles.productVideoSection}>
             <div className={styles.productVideoIntro}>
               <span className={styles.dossierEyebrow}>{templateLabels.videoEyebrow}</span>
@@ -1189,7 +1333,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.detailCards && (
+          {productVisibility.detailCards && (
           <section className={styles.contentGrid}>
             <article className={styles.contentCard}>
               <div className={styles.sectionHeader}>
@@ -1253,7 +1397,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.technicalSpecs && showTechnicalSpecs && (
+          {productVisibility.technicalSpecs && showTechnicalSpecs && (
             <section className={styles.specSection}>
               <div className={styles.specHeader}>
                 <div>
@@ -1272,7 +1416,26 @@ export default function ProductPage() {
             </section>
           )}
 
-          {templateVisibility.reviews && (
+          {productFaqs.length > 0 && (
+            <section className={styles.productFaqSection}>
+              <div className={styles.specHeader}>
+                <div>
+                  <h2>Product FAQ</h2>
+                  <p>Answers customers should see before choosing this product.</p>
+                </div>
+              </div>
+              <div className={styles.productFaqGrid}>
+                {productFaqs.map(item => (
+                  <article key={item.question} className={styles.productFaqItem}>
+                    <h3>{item.question}</h3>
+                    <p>{item.answer}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {productVisibility.reviews && (
           <section className={styles.reviewSection}>
             <div className={styles.reviewSectionHeader}>
               <div>
@@ -1349,7 +1512,7 @@ export default function ProductPage() {
           </section>
           )}
 
-          {templateVisibility.bundles && bundleItems && bundleItems.length > 0 && (
+          {productVisibility.bundles && ((bundleItems && bundleItems.length > 0) || manualRecommendedProducts.length > 0) && (
             <section className={styles.bundleSection}>
               <div className={styles.bundleHeader}>
                 <div>
@@ -1363,7 +1526,7 @@ export default function ProductPage() {
                 )}
               </div>
               <div className={styles.bundleGrid}>
-                {bundleItems.map(item => {
+                {bundleItems && bundleItems.length > 0 ? bundleItems.map(item => {
                   const electronicProduct = item.electronic_product as Product
                   if (!electronicProduct) return null
                   const checked = selectedElectronics.has(item.electronic_product_id)
@@ -1388,7 +1551,18 @@ export default function ProductPage() {
                       </div>
                     </button>
                   )
-                })}
+                }) : manualRecommendedProducts.map(item => (
+                  <Link key={item.id} to={`/product/${item.slug}`} className={styles.bundleProductLink}>
+                    <img
+                      src={item.image_url || 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=200'}
+                      alt={item.name}
+                      className={styles.bundleImg}
+                    />
+                    <span className={styles.bundleCategory}>{item.brand || getFamilyLabel(getProductFamily(item))}</span>
+                    <span className={styles.bundleName}>{item.name}</span>
+                    <span className={styles.bundlePrice}>{formatFromBase(getProductPrice(item))}</span>
+                  </Link>
+                ))}
               </div>
             </section>
           )}

@@ -50,12 +50,14 @@
 .productVideoSection,
 .contentCard,
 .specSection,
+.productFaqSection,
 .reviewSection,
 .bundleSection,
 .aircraftHeroPanel,
 .aircraftBand,
 .aircraftSpecSection,
 .aircraftRecommendedSection,
+.aircraftFaqSection,
 .aircraftVideoSection {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
@@ -356,6 +358,7 @@
 .productVideoSection,
 .contentGrid,
 .specSection,
+.productFaqSection,
 .reviewSection,
 .bundleSection {
   margin-top: 30px;
@@ -384,9 +387,11 @@
 
 .templateGuideCard,
 .specCard,
+.productFaqItem,
 .reviewCard,
 .reviewFormCard,
 .bundleCard,
+.bundleProductLink,
 .aircraftOverviewGrid article,
 .aircraftFileGrid article,
 .aircraftEmptyParts {
@@ -410,6 +415,7 @@
 .dossierBlueprint,
 .contentCard,
 .specSection,
+.productFaqSection,
 .reviewSection,
 .bundleSection {
   padding: clamp(24px, 4vw, 34px);
@@ -625,6 +631,23 @@
   text-align: left;
 }
 
+.bundleProductLink {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 10px 14px;
+  align-items: center;
+  color: #ffffff;
+}
+
+.bundleProductLink .bundleImg {
+  grid-row: span 3;
+}
+
+.bundleProductLink:hover {
+  border-color: rgba(37, 214, 111, 0.38);
+  background: rgba(37, 214, 111, 0.07);
+}
+
 .bundleCardSelected {
   border-color: rgba(37, 214, 111, 0.42);
   background: rgba(37, 214, 111, 0.08);
@@ -734,6 +757,7 @@
 .aircraftBand,
 .aircraftSpecSection,
 .aircraftRecommendedSection,
+.aircraftFaqSection,
 .aircraftVideoSection {
   margin: 0;
   padding: clamp(58px, 7vw, 96px) 0;
@@ -806,6 +830,23 @@
   font-weight: 900;
 }
 
+.productFaqGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.productFaqItem h3 {
+  color: #ffffff;
+  font-size: 1.08rem;
+  margin-bottom: 10px;
+}
+
+.productFaqItem p {
+  color: rgba(239, 249, 242, 0.72);
+  line-height: 1.65;
+}
+
 @media (max-width: 1120px) {
   .heroGrid,
   .aircraftHero,
@@ -855,6 +896,7 @@
   .productVideoSection,
   .contentCard,
   .specSection,
+  .productFaqSection,
   .reviewSection,
   .bundleSection,
   .aircraftHeroPanel {
@@ -882,6 +924,7 @@
   .aircraftHeroFacts,
   .assuranceBar,
   .specGrid,
+  .productFaqGrid,
   .aircraftSpecTable,
   .bundleGrid,
   .aircraftRecommendedGrid {
@@ -907,6 +950,7 @@
   }
 
   .aircraftRecommendedCard,
+  .bundleProductLink,
   .bundleCard {
     grid-template-columns: 1fr;
   }

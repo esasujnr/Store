@@ -15,7 +15,7 @@ import {
   getProductFamily,
 } from '@/lib/catalog'
 import { slugify } from '@/lib/utils'
-import { useCategories, useMarketplaceBrands } from '@/hooks/useProducts'
+import { useCategories, useMarketplaceBrands, useProducts } from '@/hooks/useProducts'
 import type { Product } from '@/lib/database.types'
 import toast from 'react-hot-toast'
 import styles from './AdminProductForm.module.css'
@@ -73,6 +73,7 @@ const PRODUCT_SPEC_TEMPLATES = {
 } as const
 
 type ProductContentBuilder = {
+  product_page_layout: string
   overview: string
   product_story_title: string
   product_story: string
@@ -88,9 +89,26 @@ type ProductContentBuilder = {
   shipping_window: string
   who_it_is_for: string
   who_it_is_not_for: string
+  technical_specs: string
+  product_faqs: string
+  recommended_product_slugs: string
+}
+
+type ProductPageVisibility = {
+  trustLine: boolean
+  assuranceBar: boolean
+  beforeYouBuy: boolean
+  templateGuide: boolean
+  dossier: boolean
+  video: boolean
+  detailCards: boolean
+  technicalSpecs: boolean
+  reviews: boolean
+  bundles: boolean
 }
 
 const EMPTY_CONTENT_BUILDER: ProductContentBuilder = {
+  product_page_layout: 'auto',
   overview: '',
   product_story_title: '',
   product_story: '',
@@ -106,9 +124,38 @@ const EMPTY_CONTENT_BUILDER: ProductContentBuilder = {
   shipping_window: '',
   who_it_is_for: '',
   who_it_is_not_for: '',
+  technical_specs: '',
+  product_faqs: '',
+  recommended_product_slugs: '',
 }
 
 const BUILDER_LIST_FIELDS: Array<keyof ProductContentBuilder> = ['included', 'requirements', 'manufacturing_notes', 'purchase_notes']
+
+const DEFAULT_PRODUCT_PAGE_VISIBILITY: ProductPageVisibility = {
+  trustLine: true,
+  assuranceBar: true,
+  beforeYouBuy: true,
+  templateGuide: true,
+  dossier: true,
+  video: true,
+  detailCards: true,
+  technicalSpecs: true,
+  reviews: true,
+  bundles: true,
+}
+
+const PRODUCT_PAGE_VISIBILITY_LABELS: Array<{ key: keyof ProductPageVisibility; label: string; help: string }> = [
+  { key: 'trustLine', label: 'Trust line', help: 'Brand, origin, and warranty line near the buy area.' },
+  { key: 'assuranceBar', label: 'Assurance bar', help: 'Payment, delivery, and support confidence badges.' },
+  { key: 'beforeYouBuy', label: 'Before you buy', help: 'Buyer-fit notes and expectations.' },
+  { key: 'templateGuide', label: 'Guide cards', help: 'Product family explanation cards.' },
+  { key: 'dossier', label: 'Files / dossier', help: 'Downloads, requirements, and product dossier sections.' },
+  { key: 'video', label: 'Video', help: 'Embedded build or demonstration video.' },
+  { key: 'detailCards', label: 'Detail cards', help: 'Included items, requirements, and manufacturing notes.' },
+  { key: 'technicalSpecs', label: 'Technical specs', help: 'Structured specification table.' },
+  { key: 'reviews', label: 'Reviews', help: 'Customer reviews and review form.' },
+  { key: 'bundles', label: 'Recommended products', help: 'Linked add-ons, bundles, and shopping list.' },
+]
 
 function listToTextarea(value: unknown): string {
   if (Array.isArray(value)) return value.map(item => String(item)).join('\n')
@@ -123,8 +170,97 @@ function textareaToList(value: string): string[] {
     .filter(Boolean)
 }
 
+function labelValueListToTextarea(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => {
+        if (item && typeof item === 'object') {
+          const row = item as Record<string, unknown>
+          const label = String(row.label || row.name || row.key || '').trim()
+          const specValue = String(row.value || row.description || '').trim()
+          return label && specValue ? `${label}: ${specValue}` : label || specValue
+        }
+        return String(item).trim()
+      })
+      .filter(Boolean)
+      .join('\n')
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([label, specValue]) => `${label}: ${String(specValue)}`)
+      .join('\n')
+  }
+
+  return typeof value === 'string' ? value : ''
+}
+
+function textareaToLabelValueList(value: string): Array<{ label: string; value: string }> {
+  return value
+    .split('\n')
+    .map(item => item.trim())
+    .filter(Boolean)
+    .map(item => {
+      const separatorIndex = item.search(/[:|-]/)
+      if (separatorIndex === -1) return { label: item, value: '' }
+      return {
+        label: item.slice(0, separatorIndex).trim(),
+        value: item.slice(separatorIndex + 1).trim(),
+      }
+    })
+    .filter(item => item.label || item.value)
+}
+
+function faqsToTextarea(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => {
+        if (item && typeof item === 'object') {
+          const row = item as Record<string, unknown>
+          const question = String(row.question || row.title || '').trim()
+          const answer = String(row.answer || row.body || row.description || '').trim()
+          return question && answer ? `${question} | ${answer}` : question || answer
+        }
+        return String(item).trim()
+      })
+      .filter(Boolean)
+      .join('\n')
+  }
+
+  return typeof value === 'string' ? value : ''
+}
+
+function textareaToFaqs(value: string): Array<{ question: string; answer: string }> {
+  return value
+    .split('\n')
+    .map(item => item.trim())
+    .filter(Boolean)
+    .map(item => {
+      const [question = '', ...answerParts] = item.split('|')
+      return {
+        question: question.trim(),
+        answer: answerParts.join('|').trim(),
+      }
+    })
+    .filter(item => item.question && item.answer)
+}
+
+function specsToVisibility(specs: Record<string, unknown>): ProductPageVisibility {
+  const value = specs.product_page_visibility
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return DEFAULT_PRODUCT_PAGE_VISIBILITY
+  const overrides = value as Partial<Record<keyof ProductPageVisibility, unknown>>
+  return PRODUCT_PAGE_VISIBILITY_LABELS.reduce<ProductPageVisibility>(
+    (next, item) => ({
+      ...next,
+      [item.key]: typeof overrides[item.key] === 'boolean' ? Boolean(overrides[item.key]) : next[item.key],
+    }),
+    { ...DEFAULT_PRODUCT_PAGE_VISIBILITY },
+  )
+}
+
 function specsToBuilder(specs: Record<string, unknown>): ProductContentBuilder {
   return {
+    product_page_layout: String(specs.product_page_layout || 'auto'),
     overview: String(specs.overview || specs.long_description || specs.design_summary || ''),
     product_story_title: String(specs.product_story_title || ''),
     product_story: String(specs.product_story || ''),
@@ -140,16 +276,39 @@ function specsToBuilder(specs: Record<string, unknown>): ProductContentBuilder {
     shipping_window: String(specs.shipping_window || specs.lead_time || specs.leadtime || ''),
     who_it_is_for: String(specs.who_it_is_for || specs.who_its_for || specs.ideal_for || ''),
     who_it_is_not_for: String(specs.who_it_is_not_for || specs.who_its_not_for || ''),
+    technical_specs: labelValueListToTextarea(specs.technical_specs),
+    product_faqs: faqsToTextarea(specs.product_faqs),
+    recommended_product_slugs: listToTextarea(specs.recommended_product_slugs),
   }
 }
 
-function mergeBuilderIntoSpecs(specs: Record<string, unknown>, builder: ProductContentBuilder) {
+function mergeBuilderIntoSpecs(specs: Record<string, unknown>, builder: ProductContentBuilder, visibility: ProductPageVisibility) {
   const next: Record<string, unknown> = { ...specs }
   ;(Object.keys(builder) as Array<keyof ProductContentBuilder>).forEach(key => {
     const value = builder[key].trim()
-    if (!value) return
+    if (!value) {
+      delete next[key]
+      return
+    }
+    if (key === 'technical_specs') {
+      next.technical_specs = textareaToLabelValueList(value)
+      return
+    }
+    if (key === 'product_faqs') {
+      next.product_faqs = textareaToFaqs(value)
+      return
+    }
+    if (key === 'recommended_product_slugs') {
+      next.recommended_product_slugs = textareaToList(value)
+      return
+    }
     next[key] = BUILDER_LIST_FIELDS.includes(key) ? textareaToList(value) : value
   })
+  if (!builder.technical_specs.trim()) delete next.technical_specs
+  if (!builder.product_faqs.trim()) delete next.product_faqs
+  if (!builder.recommended_product_slugs.trim()) delete next.recommended_product_slugs
+  next.product_page_layout = builder.product_page_layout || 'auto'
+  next.product_page_visibility = visibility
   if (builder.shipping_window.trim()) next.lead_time = builder.shipping_window.trim()
   if (builder.who_it_is_for.trim()) next.ideal_for = builder.who_it_is_for.trim()
   return next
@@ -160,6 +319,7 @@ export default function AdminProductForm() {
   const navigate = useNavigate()
   const { data: categories } = useCategories()
   const { data: brands } = useMarketplaceBrands(true)
+  const { data: products = [] } = useProducts()
   const isEdit = !!id
 
   const [form, setForm] = useState({
@@ -199,6 +359,7 @@ export default function AdminProductForm() {
   const [imagePreview, setImagePreview] = useState('')
   const [loading, setLoading] = useState(false)
   const [builder, setBuilder] = useState<ProductContentBuilder>(EMPTY_CONTENT_BUILDER)
+  const [pageVisibility, setPageVisibility] = useState<ProductPageVisibility>(DEFAULT_PRODUCT_PAGE_VISIBILITY)
 
   useEffect(() => {
     if (isEdit) {
@@ -243,6 +404,7 @@ export default function AdminProductForm() {
               specs: JSON.stringify(productSpecs, null, 2),
             })
             setBuilder(specsToBuilder(productSpecs))
+            setPageVisibility(specsToVisibility(productSpecs))
             setImagePreview(p.image_url)
           }
         })
@@ -295,11 +457,25 @@ export default function AdminProductForm() {
       specs: JSON.stringify(template, null, 2),
     }))
     setBuilder(specsToBuilder(template as unknown as Record<string, unknown>))
+    setPageVisibility(DEFAULT_PRODUCT_PAGE_VISIBILITY)
     toast.success('Spec template inserted')
   }
 
   function updateBuilder<K extends keyof ProductContentBuilder>(key: K, value: ProductContentBuilder[K]) {
     setBuilder(current => ({ ...current, [key]: value }))
+  }
+
+  function togglePageVisibility(key: keyof ProductPageVisibility) {
+    setPageVisibility(current => ({ ...current, [key]: !current[key] }))
+  }
+
+  function toggleRecommendedProduct(slug: string) {
+    setBuilder(current => {
+      const selected = new Set(textareaToList(current.recommended_product_slugs))
+      if (selected.has(slug)) selected.delete(slug)
+      else selected.add(slug)
+      return { ...current, recommended_product_slugs: Array.from(selected).join('\n') }
+    })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -336,7 +512,7 @@ export default function AdminProductForm() {
       const salePrice = form.sale_price ? parseFloat(form.sale_price) : null
       const basePrice = parseFloat(form.price)
 
-      const mergedSpecs = mergeBuilderIntoSpecs(parsedSpecs, builder)
+      const mergedSpecs = mergeBuilderIntoSpecs(parsedSpecs, builder, pageVisibility)
 
       const payload: Partial<Product> = {
         name: form.name,
@@ -390,6 +566,11 @@ export default function AdminProductForm() {
       setLoading(false)
     }
   }
+
+  const selectedRecommendedProductSlugs = new Set(textareaToList(builder.recommended_product_slugs))
+  const recommendedProductOptions = products
+    .filter(product => product.id !== id)
+    .slice(0, 24)
 
   return (
     <>
@@ -661,6 +842,40 @@ export default function AdminProductForm() {
                       </p>
                     </div>
 
+                    <div className={styles.builderControlGrid}>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Product Page Layout</label>
+                        <select
+                          className={styles.select}
+                          value={builder.product_page_layout}
+                          onChange={e => updateBuilder('product_page_layout', e.target.value)}
+                        >
+                          <option value="auto">Auto: use product type</option>
+                          <option value="aircraft">Aircraft / UAV detail layout</option>
+                          <option value="standard">Standard marketplace product layout</option>
+                        </select>
+                        <p className={styles.fieldHint}>Use Aircraft for UAVs and airframes. Use Standard for electronics, motors, tools, and accessories.</p>
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Section Visibility</label>
+                        <div className={styles.builderToggleGrid}>
+                          {PRODUCT_PAGE_VISIBILITY_LABELS.map(item => (
+                            <label key={item.key} className={styles.builderToggle}>
+                              <input
+                                type="checkbox"
+                                checked={pageVisibility[item.key]}
+                                onChange={() => togglePageVisibility(item.key)}
+                              />
+                              <span>
+                                <strong>{item.label}</strong>
+                                <small>{item.help}</small>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
                     <div className={styles.builderGrid}>
                       <div className={styles.field}>
                         <label className={styles.label}>Overview / Design Summary</label>
@@ -754,6 +969,56 @@ export default function AdminProductForm() {
                           placeholder="Example: Not ideal if you want a fully assembled ready-to-fly aircraft."
                         />
                       </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Technical Specs</label>
+                        <textarea
+                          className={styles.textarea}
+                          value={builder.technical_specs}
+                          onChange={e => updateBuilder('technical_specs', e.target.value)}
+                          rows={5}
+                          placeholder={'Wingspan: 1200 mm\nMaterial: PA12 MJF nylon\nPayload: 1.5 kg'}
+                        />
+                        <p className={styles.fieldHint}>Use one spec per line in Label: Value format.</p>
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.label}>Product FAQs</label>
+                        <textarea
+                          className={styles.textarea}
+                          value={builder.product_faqs}
+                          onChange={e => updateBuilder('product_faqs', e.target.value)}
+                          rows={5}
+                          placeholder={'Is this a digital file? | This product includes downloadable STL files.\nCan I use it commercially? | Check the license and support policy before use.'}
+                        />
+                        <p className={styles.fieldHint}>Use one question per line in Question | Answer format.</p>
+                      </div>
+                    </div>
+
+                    <div className={styles.field}>
+                      <label className={styles.label}>Recommended Products</label>
+                      <p className={styles.fieldHint}>Choose add-ons or companion products for this page. These appear as recommendations even when no bundle table has been set up.</p>
+                      <div className={styles.recommendedPickGrid}>
+                        {recommendedProductOptions.map(product => (
+                          <label key={product.id} className={styles.recommendedPickItem}>
+                            <input
+                              type="checkbox"
+                              checked={selectedRecommendedProductSlugs.has(product.slug)}
+                              onChange={() => toggleRecommendedProduct(product.slug)}
+                            />
+                            <span>
+                              <strong>{product.name}</strong>
+                              <small>{product.brand || 'Wingxtra'} | {product.slug}</small>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      <textarea
+                        className={styles.textarea}
+                        value={builder.recommended_product_slugs}
+                        onChange={e => updateBuilder('recommended_product_slugs', e.target.value)}
+                        rows={3}
+                        placeholder={'wingxtra-flight-controller\npayload-bay-stl'}
+                      />
+                      <p className={styles.fieldHint}>You can also paste product slugs manually, one per line.</p>
                     </div>
 
                     <div className={styles.videoGrid}>

@@ -12,10 +12,18 @@
 .textarea, .select { width:100%; border:1px solid rgba(255,255,255,.16); background:#050805; color:white; padding:12px; border-radius:8px; }
 .select { min-height:44px; }
 .select option { color:#0b120d; }
-.row2, .builderGrid, .videoGrid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.row2, .builderGrid, .videoGrid, .builderControlGrid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .builderPanel { display:grid; gap:20px; }
 .builderHeader h3 { margin-top:6px; font-size:24px; }
 .builderHeader p, .specHint { color:rgba(255,255,255,.65); }
+.fieldHint { margin:0; color:rgba(255,255,255,.55); font-size:13px; line-height:1.5; }
+.builderToggleGrid, .recommendedPickGrid { display:grid; gap:10px; }
+.builderToggle { display:flex; align-items:flex-start; gap:10px; padding:12px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); }
+.builderToggle span, .recommendedPickItem span { display:grid; gap:3px; }
+.builderToggle strong, .recommendedPickItem strong { color:#fff; }
+.builderToggle small, .recommendedPickItem small { color:rgba(255,255,255,.58); line-height:1.35; }
+.recommendedPickGrid { max-height:360px; overflow:auto; grid-template-columns:repeat(2,minmax(0,1fr)); padding-right:4px; }
+.recommendedPickItem { display:flex; align-items:flex-start; gap:10px; padding:12px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); }
 .readOnlyInfo, .specButton { border:1px solid rgba(255,255,255,.12); padding:12px; color:rgba(255,255,255,.75); background:rgba(255,255,255,.05); }
 .specTools { display:flex; gap:12px; align-items:center; margin-bottom:8px; }
 .specButton { color:#25d66f; font-weight:900; cursor:pointer; }
@@ -27,7 +35,7 @@
 .checkboxGroup { display:grid; gap:12px; }
 .checkbox { display:flex; gap:10px; align-items:center; color:rgba(255,255,255,.8); }
 .formActions { margin-top:28px; display:flex; gap:14px; flex-wrap:wrap; }
-@media(max-width:1000px){.grid,.row2,.builderGrid,.videoGrid{grid-template-columns:1fr}.sideCol{order:-1}}
+@media(max-width:1000px){.grid,.row2,.builderGrid,.videoGrid,.builderControlGrid,.recommendedPickGrid{grid-template-columns:1fr}.sideCol{order:-1}}
 
 .inventoryPanel { border: 1px solid rgba(37,214,111,.26); background: rgba(37,214,111,.07); padding: 18px; display: grid; gap: 16px; }
 .inventoryHeader h3 { margin-top: 6px; font-size: 22px; }
