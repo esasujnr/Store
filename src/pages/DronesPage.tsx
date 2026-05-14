@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { type TouchEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, PlayCircle } from 'lucide-react'
 import SEO from '@/components/SEO'
@@ -51,6 +51,7 @@ export default function DronesPage() {
   const { formatFromBase } = useCurrency()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
   const content = siteContent ?? getDefaultSiteContent('drones_page')
   const maxCatalogItems = Math.max(1, Number.parseInt(content.catalog.maxItems, 10) || 3)
 
@@ -103,6 +104,39 @@ export default function DronesPage() {
     setCurrentSlide(value => (value + 1) % heroSlides.length)
   }
 
+  useEffect(() => {
+    if (heroSlides.length < 2) return
+    const interval = window.setInterval(() => {
+      setCurrentSlide(value => (value + 1) % heroSlides.length)
+    }, 7000)
+    return () => window.clearInterval(interval)
+  }, [heroSlides.length])
+
+  useEffect(() => {
+    setCurrentSlide(value => (heroSlides.length ? value % heroSlides.length : 0))
+  }, [heroSlides.length])
+
+  function handleHeroTouchStart(event: TouchEvent<HTMLElement>) {
+    const touch = event.touches[0]
+    if (!touch) return
+    touchStart.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  function handleHeroTouchEnd(event: TouchEvent<HTMLElement>) {
+    const start = touchStart.current
+    const touch = event.changedTouches[0]
+    touchStart.current = null
+    if (!start || !touch || heroSlides.length < 2) return
+
+    const deltaX = touch.clientX - start.x
+    const deltaY = touch.clientY - start.y
+    const isIntentionalSwipe = Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+    if (!isIntentionalSwipe) return
+
+    if (deltaX < 0) goNext()
+    else goPrev()
+  }
+
   return (
     <>
       <SEO
@@ -117,7 +151,7 @@ export default function DronesPage() {
 
       <div className={styles.page}>
         {content.visibility.hero && (
-        <section className={styles.hero}>
+        <section className={styles.hero} onTouchStart={handleHeroTouchStart} onTouchEnd={handleHeroTouchEnd}>
           {activeSlide && (
             <>
               <img src={activeSlide.image} alt={activeSlide.title} className={styles.heroImage} />

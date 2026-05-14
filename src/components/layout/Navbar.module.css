@@ -346,13 +346,23 @@
 .mobilePanel {
   position: fixed;
   inset: 0;
-  z-index: 80;
-  background: #030704;
-  padding: 24px;
+  z-index: 1000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  box-sizing: border-box;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(46, 231, 127, 0.13), transparent 38%),
+    linear-gradient(180deg, #030704 0%, #050a06 100%);
+  background-color: #030704;
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .mobileHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .mobileHeader img { width: 150px; }

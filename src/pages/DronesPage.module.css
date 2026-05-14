@@ -11,6 +11,7 @@
   min-height: 82vh;
   overflow: hidden;
   background: #081008;
+  touch-action: pan-y;
 }
 
 .heroImage {
@@ -127,6 +128,12 @@
 
 .arrowRight {
   right: 24px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .arrow {
+    display: none;
+  }
 }
 
 .quickNav,

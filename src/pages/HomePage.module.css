@@ -5,6 +5,7 @@
   display: grid;
   align-items: center;
   overflow: hidden;
+  touch-action: pan-y;
   background-position: center;
   background-size: cover;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -604,4 +605,10 @@
 
   .imageLeft img { order: 0; }
   .newsletterForm { grid-template-columns: 1fr; }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .heroArrow {
+    display: none;
+  }
 }

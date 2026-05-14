@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties, useEffect, useMemo, useState } from 'react'
+import { Fragment, type CSSProperties, type TouchEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ChevronDown, PackageCheck, ShieldCheck, Wrench } from 'lucide-react'
 import SEO from '@/components/SEO'
@@ -21,6 +21,7 @@ export default function HomePage() {
   const catalog = products?.length ? products : fallbackProducts
   const [slide, setSlide] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
 
   const heroSlides = useMemo(() => {
     const legacySlide = {
@@ -109,6 +110,35 @@ export default function HomePage() {
   } as CSSProperties
   const panelPosition = content.design.heroPanelPosition.charAt(0).toUpperCase() + content.design.heroPanelPosition.slice(1)
   const heroCanvasClass = `${styles.heroCanvas} ${styles[`panel${panelPosition}`]}`
+
+  function goPrev() {
+    setSlide(current => (current + heroSlides.length - 1) % heroSlides.length)
+  }
+
+  function goNext() {
+    setSlide(current => (current + 1) % heroSlides.length)
+  }
+
+  function handleHeroTouchStart(event: TouchEvent<HTMLElement>) {
+    const touch = event.touches[0]
+    if (!touch) return
+    touchStart.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  function handleHeroTouchEnd(event: TouchEvent<HTMLElement>) {
+    const start = touchStart.current
+    const touch = event.changedTouches[0]
+    touchStart.current = null
+    if (!start || !touch || heroSlides.length < 2) return
+
+    const deltaX = touch.clientX - start.x
+    const deltaY = touch.clientY - start.y
+    const isIntentionalSwipe = Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+    if (!isIntentionalSwipe) return
+
+    if (deltaX < 0) goNext()
+    else goPrev()
+  }
 
   const renderHomeSection = (sectionKey: HomeSectionKey) => {
     switch (sectionKey) {
@@ -331,12 +361,14 @@ export default function HomePage() {
 
       <section
         className={styles.heroShell}
+        onTouchStart={handleHeroTouchStart}
+        onTouchEnd={handleHeroTouchEnd}
         style={{
           ...homeStyle,
           backgroundImage: `linear-gradient(90deg, rgba(3, 8, 4, var(--home-hero-overlay)), rgba(3, 8, 4, 0.26) 48%, rgba(3, 8, 4, 0.86)), url(${active.image})`,
         }}
       >
-        <button className={`${styles.heroArrow} ${styles.heroArrowLeft}`} onClick={() => setSlide(current => (current + heroSlides.length - 1) % heroSlides.length)} aria-label="Previous slide">
+        <button className={`${styles.heroArrow} ${styles.heroArrowLeft}`} onClick={goPrev} aria-label="Previous slide">
           <ArrowLeft size={30} strokeWidth={1.35} aria-hidden="true" />
         </button>
 
@@ -367,7 +399,7 @@ export default function HomePage() {
           </article>
         </div>
 
-        <button className={`${styles.heroArrow} ${styles.heroArrowRight}`} onClick={() => setSlide(current => (current + 1) % heroSlides.length)} aria-label="Next slide">
+        <button className={`${styles.heroArrow} ${styles.heroArrowRight}`} onClick={goNext} aria-label="Next slide">
           <ArrowRight size={30} strokeWidth={1.35} aria-hidden="true" />
         </button>
       </section>

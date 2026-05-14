@@ -83,6 +83,15 @@ export default function Navbar() {
     setMobileBrandsOpen(false)
   }, [location.pathname])
 
+  useEffect(() => {
+    if (!menuOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [menuOpen])
+
   function closeMobileMenu() {
     setMenuOpen(false)
     setMobileProductsOpen(false)
@@ -90,8 +99,9 @@ export default function Navbar() {
   }
 
   return (
-    <header className={styles.header}>
-      <div className={styles.inner}>
+    <>
+      <header className={styles.header}>
+        <div className={styles.inner}>
         <Link to="/" className={styles.logo} aria-label="Wingxtra Store">
           <img src="/brand/wingxtra-logo-white.svg" alt="Wingxtra" />
         </Link>
@@ -226,7 +236,8 @@ export default function Navbar() {
             <Menu size={24} />
           </button>
         </div>
-      </div>
+        </div>
+      </header>
 
       {menuOpen && (
         <div className={styles.mobilePanel}>
@@ -303,6 +314,6 @@ export default function Navbar() {
           {user ? <button onClick={() => { void signOut(); closeMobileMenu() }}>Sign out</button> : <Link to="/login" onClick={closeMobileMenu}>Account</Link>}
         </div>
       )}
-    </header>
+    </>
   )
 }
