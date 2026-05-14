@@ -14,6 +14,7 @@ import {
   getProductDeliveryType,
   getProductFamily,
 } from '@/lib/catalog'
+import type { NewArrivalMode } from '@/lib/catalog'
 import { slugify } from '@/lib/utils'
 import { useCategories, useMarketplaceBrands, useProducts } from '@/hooks/useProducts'
 import type { Product } from '@/lib/database.types'
@@ -24,6 +25,24 @@ const FULFILLMENT_TYPES = [
   { value: 'fdm', label: 'FDM (Digital Download)' },
   { value: 'mjf', label: 'MJF (3D Printed Physical)' },
   { value: 'composite', label: 'Composite (Carbon Fiber Physical)' },
+]
+
+const NEW_ARRIVAL_MODES: Array<{ value: NewArrivalMode; label: string; help: string }> = [
+  {
+    value: 'auto',
+    label: 'Auto - new for 30 days',
+    help: 'Default behavior. The storefront shows New Arrival for products created in the last 30 days.',
+  },
+  {
+    value: 'force',
+    label: 'Force New - always show',
+    help: 'Use this for strategic launches, featured restocks, or items you want to keep promoted.',
+  },
+  {
+    value: 'hide',
+    label: 'Hide New - never show',
+    help: 'Use this when a product is recently added but should not carry a New Arrival badge.',
+  },
 ]
 
 const PRODUCT_SPEC_TEMPLATES = {
@@ -314,6 +333,12 @@ function mergeBuilderIntoSpecs(specs: Record<string, unknown>, builder: ProductC
   return next
 }
 
+function resolveNewArrivalMode(product: Product, specs: Record<string, unknown>): NewArrivalMode {
+  const mode = String(specs.new_arrival_mode || '').toLowerCase()
+  if (mode === 'auto' || mode === 'force' || mode === 'hide') return mode
+  return product.is_new_arrival ? 'force' : 'auto'
+}
+
 export default function AdminProductForm() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
@@ -339,6 +364,7 @@ export default function AdminProductForm() {
     supplier_sku: '',
     warranty_notes: '',
     compatibility_notes: '',
+    new_arrival_mode: 'auto' as NewArrivalMode,
     is_new_arrival: false,
     category_id: '',
     stock_count: '0',
@@ -389,6 +415,7 @@ export default function AdminProductForm() {
               supplier_sku: p.supplier_sku || '',
               warranty_notes: p.warranty_notes || '',
               compatibility_notes: p.compatibility_notes || '',
+              new_arrival_mode: resolveNewArrivalMode(p, productSpecs),
               is_new_arrival: Boolean(p.is_new_arrival),
               category_id: p.category_id || '',
               stock_count: String(p.stock_count),
@@ -513,6 +540,7 @@ export default function AdminProductForm() {
       const basePrice = parseFloat(form.price)
 
       const mergedSpecs = mergeBuilderIntoSpecs(parsedSpecs, builder, pageVisibility)
+      mergedSpecs.new_arrival_mode = form.new_arrival_mode
 
       const payload: Partial<Product> = {
         name: form.name,
@@ -531,7 +559,7 @@ export default function AdminProductForm() {
         supplier_sku: form.supplier_sku.trim(),
         warranty_notes: form.warranty_notes.trim(),
         compatibility_notes: form.compatibility_notes.trim(),
-        is_new_arrival: form.is_new_arrival,
+        is_new_arrival: form.new_arrival_mode === 'force',
         category_id: form.category_id || null,
         stock_count: parseInt(form.stock_count),
         track_inventory: form.fulfillment_type === 'fdm' ? false : form.track_inventory,
@@ -765,10 +793,40 @@ export default function AdminProductForm() {
                       />
                     </div>
                     <div className={styles.merchStatusGrid}>
-                      <label className={styles.checkbox}>
-                        <input type="checkbox" checked={form.is_new_arrival} onChange={e => setForm(f => ({ ...f, is_new_arrival: e.target.checked }))} />
-                        Mark as New Arrival
-                      </label>
+                      <div className={styles.field}>
+                        <label className={styles.label}>New Arrival Mode</label>
+                        <select
+                          className={styles.select}
+                          value={form.new_arrival_mode}
+                          onChange={e => {
+                            const mode = e.target.value as NewArrivalMode
+                            setForm(f => ({ ...f, new_arrival_mode: mode, is_new_arrival: mode === 'force' }))
+                          }}
+                        >
+                          {NEW_ARRIVAL_MODES.map(option => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
+                        <p className={styles.fieldHint}>
+                          {NEW_ARRIVAL_MODES.find(option => option.value === form.new_arrival_mode)?.help}
+                        </p>
+                      </div>
+                      <div className={`${styles.merchStatus} ${form.new_arrival_mode === 'force' ? styles.merchStatusActive : ''}`}>
+                        <strong>
+                          {form.new_arrival_mode === 'auto'
+                            ? 'Automatic New badge'
+                            : form.new_arrival_mode === 'force'
+                              ? 'New badge forced on'
+                              : 'New badge hidden'}
+                        </strong>
+                        <span>
+                          {form.new_arrival_mode === 'auto'
+                            ? 'New Arrival appears only during the first 30 days after this product is created.'
+                            : form.new_arrival_mode === 'force'
+                              ? 'New Arrival will keep showing until you change this back to Auto or Hide.'
+                              : 'New Arrival will not show, even if this product was created recently.'}
+                        </span>
+                      </div>
                       <div className={`${styles.merchStatus} ${saleIsActive ? styles.merchStatusActive : ''} ${saleIsInvalid ? styles.merchStatusWarning : ''}`}>
                         <strong>{saleIsActive ? 'On Sale badge active' : saleIsInvalid ? 'Sale inactive' : 'Regular price'}</strong>
                         <span>

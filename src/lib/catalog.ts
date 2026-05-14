@@ -105,8 +105,25 @@ export function getAdditiveLabel(value?: string | null): string {
   return value ? additiveLabels[value] || value.replace(/_/g, ' ') : 'Additive Manufacturing'
 }
 
+export type NewArrivalMode = 'auto' | 'force' | 'hide'
+
+const NEW_ARRIVAL_WINDOW_MS = 1000 * 60 * 60 * 24 * 30
+
+export function getNewArrivalMode(product: Product): NewArrivalMode {
+  const mode = String(product.specs?.new_arrival_mode || '').toLowerCase()
+  if (mode === 'auto' || mode === 'force' || mode === 'hide') return mode
+  return product.is_new_arrival ? 'force' : 'auto'
+}
+
 export function isNewArrival(product: Product): boolean {
-  return Boolean(product.is_new_arrival)
+  const mode = getNewArrivalMode(product)
+  if (mode === 'force') return true
+  if (mode === 'hide') return false
+
+  const createdAt = product.created_at ? new Date(product.created_at).getTime() : 0
+  if (!createdAt) return false
+
+  return createdAt >= Date.now() - NEW_ARRIVAL_WINDOW_MS
 }
 
 export const NAV_PRODUCT_CARDS: CatalogOption[] = [
