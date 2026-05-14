@@ -60,7 +60,7 @@
   border-radius: 22px;
   padding: 18px;
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(260px, 1fr) auto;
   gap: 18px;
   align-items: center;
 }
@@ -87,6 +87,7 @@
 }
 
 .productPicker select,
+.productPicker input,
 .field select,
 .compactField input,
 .compactField textarea,
@@ -102,6 +103,7 @@
 }
 
 .productPicker select,
+.productPicker input,
 .field select,
 .compactField input,
 .inlineGrid input,
@@ -137,6 +139,19 @@
 .productSummary strong {
   display: block;
   color: #f6fbff;
+}
+
+.productLinks {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.productLinks a {
+  color: var(--color-accent-400);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .formPanel {
@@ -271,11 +286,16 @@
 }
 
 .previewBox img,
-.previewBox video {
+.previewBox video,
+.previewBox iframe {
   width: 100%;
   height: 260px;
   display: block;
   object-fit: cover;
+}
+
+.previewBox iframe {
+  border: 0;
 }
 
 .filePreview {

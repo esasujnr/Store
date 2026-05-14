@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Upload, X } from 'lucide-react'
+import { Images, Upload, X } from 'lucide-react'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -1144,6 +1144,7 @@ export default function AdminProductForm() {
 
           <div className={styles.formActions}>
             <Button type="submit" size="lg" loading={loading}>{isEdit ? 'Update Product' : 'Create Product'}</Button>
+            {isEdit && <Button type="button" variant="secondary" onClick={() => navigate(`/admin/media?product=${id}`)}><Images size={16} /> Manage Media</Button>}
             <Button type="button" variant="ghost" onClick={() => navigate('/admin/products')}>Cancel</Button>
           </div>
         </form>

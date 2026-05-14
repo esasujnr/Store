@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ExternalLink, Eye, EyeOff, FileArchive, FileText, FileUp, Image as ImageIcon, Link as LinkIcon, PlayCircle, Save, Star, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { useProductMedia, useProducts } from '@/hooks/useProducts'
+import { useAdminProducts, useProductMedia } from '@/hooks/useProducts'
 import { supabase } from '@/lib/supabase'
 import type { Product, ProductMedia } from '@/lib/database.types'
 import styles from './AdminMedia.module.css'
@@ -16,9 +17,11 @@ const MEDIA_TYPES = [
   { value: 'image', label: 'Image', helper: 'Gallery image or product hero candidate' },
   { value: 'video', label: 'Video', helper: 'YouTube embed, MP4, WebM, or hosted video URL' },
   { value: 'manual', label: 'Manual', helper: 'Build guide, setup guide, or user manual' },
+  { value: 'spec_sheet', label: 'Spec Sheet', helper: 'Datasheet, product specification, or technical PDF' },
   { value: 'blueprint', label: 'Blueprint PDF', helper: 'Plan sheets, drawings, or technical PDFs' },
   { value: 'stl', label: 'STL File', helper: 'Printable digital file attachment' },
   { value: 'mjf_file', label: 'MJF File', helper: 'MJF production file or manufacturing reference' },
+  { value: 'download', label: 'Download Pack', helper: 'Digital download pack, ZIP bundle, or customer file set' },
   { value: 'attachment', label: 'Attachment', helper: 'Any supporting downloadable asset' },
 ]
 
@@ -54,6 +57,34 @@ function isDirectVideoUrl(url: string) {
   return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url.trim())
 }
 
+function getVideoEmbedUrl(rawUrl: string) {
+  const source = rawUrl.trim()
+  if (!source) return ''
+
+  try {
+    const url = new URL(source)
+    const host = url.hostname.replace(/^www\./, '')
+    if (host === 'youtu.be') return `https://www.youtube-nocookie.com/embed/${url.pathname.replace('/', '')}`
+    if (host.includes('youtube.com')) {
+      const videoId = url.searchParams.get('v') || url.pathname.split('/').filter(Boolean).pop()
+      if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`
+    }
+  } catch {
+    return source
+  }
+
+  return source
+}
+
+function getAcceptForType(type: string) {
+  if (type === 'image') return 'image/*'
+  if (type === 'video') return 'video/*'
+  if (type === 'manual' || type === 'blueprint' || type === 'spec_sheet') return '.pdf,application/pdf'
+  if (type === 'stl') return '.stl,.3mf,.obj,.zip'
+  if (type === 'mjf_file') return '.3mf,.step,.stp,.zip,.pdf'
+  return '.pdf,.zip,.stl,.3mf,.step,.stp,.obj,image/*,video/*'
+}
+
 function sanitizeFileName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
 }
@@ -83,8 +114,10 @@ function toEdit(media: ProductMedia): MediaEdit {
 
 export default function AdminMedia() {
   const qc = useQueryClient()
-  const { data: products = [] } = useProducts()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { data: products = [] } = useAdminProducts()
   const [productId, setProductId] = useState('')
+  const [productSearch, setProductSearch] = useState('')
   const [draft, setDraft] = useState<DraftMedia>(emptyDraft)
   const [file, setFile] = useState<File | null>(null)
   const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file')
@@ -95,19 +128,64 @@ export default function AdminMedia() {
     [productId, products]
   )
 
+  const productOptions = useMemo(() => {
+    const term = productSearch.trim().toLowerCase()
+    const filtered = term
+      ? products.filter(product => {
+          const haystack = [product.name, product.slug, product.brand, product.marketplace_brand?.name]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+          return haystack.includes(term)
+        })
+      : products
+
+    if (selectedProduct && !filtered.some(product => product.id === selectedProduct.id)) {
+      return [selectedProduct, ...filtered]
+    }
+
+    return filtered
+  }, [productSearch, products, selectedProduct])
+
   const { data: productMedia = [], isLoading } = useProductMedia(productId, false)
 
   useEffect(() => {
-    if (!productId && products.length > 0) setProductId(products[0].id)
-  }, [productId, products])
+    if (!products.length) return
+    const requestedProductId = searchParams.get('product')
+    if (requestedProductId && products.some(product => product.id === requestedProductId)) {
+      setProductId(requestedProductId)
+      return
+    }
+    if (!productId) {
+      const firstProductId = products[0].id
+      setProductId(firstProductId)
+      setSearchParams({ product: firstProductId }, { replace: true })
+    }
+  }, [productId, products, searchParams, setSearchParams])
 
   useEffect(() => {
     setEdits(Object.fromEntries(productMedia.map(media => [media.id, toEdit(media)])))
   }, [productMedia])
 
+  const mediaStats = useMemo(() => {
+    const active = productMedia.filter(media => media.is_active !== false)
+    return {
+      images: active.filter(media => media.media_type === 'image').length,
+      videos: active.filter(media => media.media_type === 'video').length,
+      files: active.filter(media => !['image', 'video'].includes(media.media_type)).length,
+      hidden: productMedia.length - active.length,
+    }
+  }, [productMedia])
+
+  function handleProductChange(nextProductId: string) {
+    setProductId(nextProductId)
+    setSearchParams({ product: nextProductId })
+  }
+
   const invalidateMedia = () => {
     qc.invalidateQueries({ queryKey: ['product-media'] })
     qc.invalidateQueries({ queryKey: ['products'] })
+    qc.invalidateQueries({ queryKey: ['admin-products'] })
     qc.invalidateQueries({ queryKey: ['product'] })
   }
 
@@ -209,8 +287,9 @@ export default function AdminMedia() {
       const { error } = await supabase.from('product_media').update(payload).eq('id', media.id)
       if (error) throw error
 
-      if (payload.is_primary && payload.url) {
-        await setPrimaryImage(media.id, payload.url)
+      const primaryHref = payload.url || getMediaHref(media)
+      if (payload.is_primary && primaryHref) {
+        await setPrimaryImage(media.id, primaryHref)
       }
     },
     onSuccess: () => {
@@ -278,9 +357,17 @@ export default function AdminMedia() {
 
         <section className={styles.productPicker}>
           <label>
+            <span>Find Product</span>
+            <input
+              value={productSearch}
+              onChange={event => setProductSearch(event.target.value)}
+              placeholder="Search by product, brand, or slug"
+            />
+          </label>
+          <label>
             <span>Product</span>
-            <select value={productId} onChange={event => setProductId(event.target.value)}>
-              {products.map(product => (
+            <select value={productId} onChange={event => handleProductChange(event.target.value)}>
+              {productOptions.map(product => (
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
             </select>
@@ -291,6 +378,10 @@ export default function AdminMedia() {
               <div>
                 <strong>{selectedProduct.name}</strong>
                 <small>{selectedProduct.brand || selectedProduct.marketplace_brand?.name || 'Wingxtra'} | {selectedProduct.fulfillment_type.toUpperCase()}</small>
+                <div className={styles.productLinks}>
+                  <Link to={`/admin/products/${selectedProduct.id}/edit`}>Edit product</Link>
+                  <Link to={`/product/${selectedProduct.slug}`} target="_blank" rel="noreferrer">View page</Link>
+                </div>
               </div>
             </div>
           )}
@@ -326,7 +417,7 @@ export default function AdminMedia() {
               <label className={styles.fileDrop}>
                 <FileUp size={20} />
                 <span>{file ? file.name : 'Choose image, PDF, video, STL, or support file'}</span>
-                <input type="file" onChange={event => setFile(event.target.files?.[0] || null)} />
+                <input type="file" accept={getAcceptForType(draft.media_type)} onChange={event => setFile(event.target.files?.[0] || null)} />
               </label>
             ) : (
               <Input label="Hosted URL" value={draft.url} onChange={event => setDraft(current => ({ ...current, url: event.target.value }))} placeholder="https://..." />
@@ -351,7 +442,10 @@ export default function AdminMedia() {
               <span>Attached Media</span>
               <h2>{selectedProduct?.name || 'Choose a product'}</h2>
             </div>
-            <p>{productMedia.length} asset{productMedia.length === 1 ? '' : 's'} attached</p>
+            <p>
+              {productMedia.length} asset{productMedia.length === 1 ? '' : 's'} attached | {mediaStats.images} image{mediaStats.images === 1 ? '' : 's'}, {mediaStats.videos} video{mediaStats.videos === 1 ? '' : 's'}, {mediaStats.files} file{mediaStats.files === 1 ? '' : 's'}
+              {mediaStats.hidden > 0 ? `, ${mediaStats.hidden} hidden` : ''}
+            </p>
           </div>
 
           {isLoading ? (
@@ -364,12 +458,28 @@ export default function AdminMedia() {
                 const edit = edits[media.id] || toEdit(media)
                 const href = getMediaHref(media)
                 const canPreviewImage = media.media_type === 'image' && href
-                const canPreviewVideo = media.media_type === 'video' && href && isDirectVideoUrl(href)
+                const canPreviewVideo = media.media_type === 'video' && href
+                const videoEmbedUrl = canPreviewVideo ? getVideoEmbedUrl(href) : ''
 
                 return (
                   <article key={media.id} className={`${styles.mediaCard} ${media.is_active === false ? styles.mediaCardHidden : ''}`}>
                     <div className={styles.previewBox}>
-                      {canPreviewImage ? <img src={href} alt={media.title || 'Product media'} /> : canPreviewVideo ? <video src={href} controls /> : <div className={styles.filePreview}>{mediaIcon(media.media_type)}<span>{mediaTypeLabel(media.media_type)}</span></div>}
+                      {canPreviewImage ? (
+                        <img src={href} alt={media.title || 'Product media'} />
+                      ) : canPreviewVideo && isDirectVideoUrl(href) ? (
+                        <video src={href} controls />
+                      ) : canPreviewVideo && videoEmbedUrl ? (
+                        <iframe
+                          src={videoEmbedUrl}
+                          title={media.title || 'Product video'}
+                          loading="lazy"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className={styles.filePreview}>{mediaIcon(media.media_type)}<span>{mediaTypeLabel(media.media_type)}</span></div>
+                      )}
                       <div className={styles.previewBadges}>
                         <span>{mediaTypeLabel(media.media_type)}</span>
                         {media.is_primary && <span><Star size={12} /> Primary</span>}

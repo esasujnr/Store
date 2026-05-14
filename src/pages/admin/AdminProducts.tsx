@@ -1,5 +1,5 @@
 ﻿import { Link } from 'react-router-dom'
-import { Edit, Package, Plus } from 'lucide-react'
+import { Edit, Images, Package, Plus } from 'lucide-react'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -23,7 +23,7 @@ export default function AdminProducts() {
         </div>
         {isLoading ? <LoadingSpinner /> : (
           <div className={styles.table}>
-            <div className={styles.tableHeader}><span>Product</span><span>Family</span><span>Stock</span><span>Price</span><span></span></div>
+            <div className={styles.tableHeader}><span>Product</span><span>Family</span><span>Stock</span><span>Price</span><span>Actions</span></div>
             {products.map(product => {
               const inventory = getInventoryStatus(product)
               return <div key={product.id} className={styles.row}>
@@ -31,7 +31,10 @@ export default function AdminProducts() {
                 <span>{getFamilyLabel(getProductFamily(product))}</span>
                 <span className={styles[inventory.tone]}>{inventory.label}</span>
                 <span>{formatCurrency(getProductPrice(product), 'GHS')}</span>
-                <Link to={`/admin/products/${product.id}/edit`} className={styles.edit}><Edit size={15} /> Edit</Link>
+                <div className={styles.actions}>
+                  <Link to={`/admin/products/${product.id}/edit`} className={styles.edit}><Edit size={15} /> Edit</Link>
+                  <Link to={`/admin/media?product=${product.id}`} className={styles.media}><Images size={15} /> Media</Link>
+                </div>
               </div>
             })}
           </div>

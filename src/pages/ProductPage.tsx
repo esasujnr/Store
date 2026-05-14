@@ -610,7 +610,7 @@ export default function ProductPage() {
     [productMedia]
   )
   const mediaFiles = useMemo(
-    () => productMedia.filter(media => ['manual', 'blueprint', 'file', 'stl', 'mjf_file'].includes(media.media_type) && (media.url || media.storage_path)),
+    () => productMedia.filter(media => ['manual', 'spec_sheet', 'blueprint', 'file', 'stl', 'mjf_file', 'download', 'attachment'].includes(media.media_type) && (media.url || media.storage_path)),
     [productMedia]
   )
   const galleryImages = useMemo(() => {

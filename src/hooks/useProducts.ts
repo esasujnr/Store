@@ -36,6 +36,21 @@ export function useProducts(categorySlug?: string) {
   })
 }
 
+export function useAdminProducts() {
+  return useQuery({
+    queryKey: ['admin-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select(productSelect)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return ((data || []) as unknown[]).map(normalizeProduct)
+    },
+  })
+}
+
 export function useProduct(slug: string) {
   return useQuery({
     queryKey: ['product', slug],
