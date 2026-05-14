@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, ExternalLink, Eye, FileText, Globe2, History, Plus, RotateCcw, Save, Send, Trash2, Undo2 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
 import { useAdminSiteContent } from '@/hooks/useSiteContent'
@@ -1408,7 +1408,7 @@ function GlobalContentEditor({ content, onChange }: { content: GlobalStoreConten
         </div>
       </div>
 
-      <div className={styles.sectionCard}>
+      <div id="footer-content" className={styles.sectionCard}>
         <div className={styles.sectionCardHeader}><div><h3>Footer content</h3><p>Make the footer text, support email, and footer badges editable from admin.</p></div></div>
         <TextareaField label="Tagline" rows={3} value={content.footer.tagline} onChange={next => onChange({ ...content, footer: { ...content.footer, tagline: next } })} />
         <div className={styles.twoColumn}>
@@ -1540,6 +1540,7 @@ function ProductTemplateEditor({ content, onChange }: { content: ProductPageTemp
 
 export default function AdminContent() {
   const qc = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data, isLoading } = useAdminSiteContent()
   const [activePage, setActivePage] = useState<ContentKey>('home_page')
   const [homeContent, setHomeContent] = useState<HomePageContent>(getDefaultSiteContent('home_page'))
@@ -1562,6 +1563,22 @@ export default function AdminContent() {
     global_store: globalContent,
     product_page_template: productTemplateContent,
   }), [homeContent, dronesContent, shopContent, globalContent, productTemplateContent])
+
+  useEffect(() => {
+    const requestedPage = searchParams.get('page')
+    if (
+      requestedPage &&
+      requestedPage in PAGE_META &&
+      requestedPage !== activePage
+    ) {
+      setActivePage(requestedPage as ContentKey)
+    }
+  }, [activePage, searchParams])
+
+  useEffect(() => {
+    if (activePage !== 'global_store' || searchParams.get('section') !== 'footer') return
+    window.setTimeout(() => document.getElementById('footer-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+  }, [activePage, searchParams])
 
   const applyContentToEditor = (key: ContentKey, content: unknown) => {
     if (key === 'home_page') setHomeContent(deepMergeContent(getDefaultSiteContent('home_page'), content))
@@ -1755,7 +1772,10 @@ export default function AdminContent() {
                 key={key}
                 type="button"
                 className={`${styles.pageTab} ${activePage === key ? styles.pageTabActive : ''}`}
-                onClick={() => setActivePage(key)}
+                onClick={() => {
+                  setActivePage(key)
+                  setSearchParams({ page: key })
+                }}
               >
                 {key === 'global_store' ? <Globe2 size={15} /> : <FileText size={15} />} {PAGE_META[key].label}
               </button>

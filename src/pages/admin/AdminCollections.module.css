@@ -1,1 +1,223 @@
-﻿.page{display:grid;gap:24px}.header,.card{background:#101912;border:1px solid rgba(255,255,255,.1);padding:24px}.header span{color:#25d66f;text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:900}.header h1{font-size:44px;margin:8px 0}.header p,.card p{color:rgba(255,255,255,.68)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card strong{display:block;font-size:20px}.card span{color:#25d66f;font-weight:900}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.page {
+  display: grid;
+  gap: 24px;
+}
+
+.header,
+.controls,
+.editorPanel,
+.card {
+  background: #101912;
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 22px 64px rgba(0,0,0,.28);
+}
+
+.header,
+.controls,
+.editorPanel {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header span,
+.panelHeader span,
+.controls span,
+.card label span {
+  color: #25d66f;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.header h1 {
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: .95;
+  margin: 8px 0;
+  color: #fff;
+}
+
+.header p,
+.card p,
+.empty {
+  color: rgba(255,255,255,.68);
+  line-height: 1.65;
+}
+
+.headerActions,
+.cardActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.previewLink,
+.addBtn,
+.cardActions button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  color: #eef4ff;
+  font-weight: 900;
+  padding: 0 13px;
+}
+
+.addBtn {
+  color: #25d66f;
+}
+
+.controls,
+.editorPanel,
+.card {
+  display: grid;
+  gap: 18px;
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.controls label,
+.card label {
+  display: grid;
+  gap: 8px;
+}
+
+.controls input,
+.card input,
+.card textarea {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.12);
+  background: #050805;
+  color: #fff;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.card textarea {
+  resize: vertical;
+}
+
+.panelHeader,
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panelHeader h2 {
+  margin-top: 6px;
+  color: #fff;
+  font-size: 28px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.card {
+  overflow: hidden;
+}
+
+.hiddenCard {
+  opacity: .62;
+}
+
+.cardPreview {
+  position: relative;
+  min-height: 190px;
+  background: #050805;
+}
+
+.cardPreview img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+}
+
+.cardPreview span {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  color: #07100a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.cardBody {
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.cardHeader strong {
+  color: #fff;
+  font-size: 20px;
+}
+
+.cardActions button {
+  width: 36px;
+  min-height: 34px;
+  padding: 0;
+}
+
+.cardActions button:disabled {
+  opacity: .35;
+}
+
+.cardActions .deleteBtn {
+  color: #fecaca;
+  border-color: rgba(239,68,68,.25);
+  background: rgba(239,68,68,.08);
+}
+
+.toggleLine {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255,255,255,.78);
+  font-weight: 800;
+}
+
+.toggleLine input {
+  width: 16px;
+  height: 16px;
+  accent-color: #25d66f;
+}
+
+@media(max-width:900px){
+  .header,
+  .panelHeader,
+  .cardHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .controlGrid,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

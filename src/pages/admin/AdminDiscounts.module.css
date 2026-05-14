@@ -188,6 +188,7 @@
 
 .statusToggle,
 .editBtn,
+.deleteBtn,
 .resetBtn {
   font-size: 0.75rem;
   font-weight: 600;
@@ -197,6 +198,7 @@
 }
 
 .editBtn,
+.deleteBtn,
 .resetBtn {
   display: inline-flex;
   align-items: center;
@@ -204,6 +206,12 @@
   background: rgba(255,255,255,0.05);
   color: var(--color-neutral-100);
   border: 1px solid rgba(255,255,255,0.08);
+}
+
+.deleteBtn {
+  color: #fecaca;
+  border-color: rgba(239,68,68,0.22);
+  background: rgba(239,68,68,0.08);
 }
 
 .statusActive {

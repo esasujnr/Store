@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
@@ -15,20 +15,53 @@ export default function AdminCategories() {
   const qc = useQueryClient()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  const addCategory = useMutation({
+  const saveCategory = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('categories').insert({ name, slug: slugify(name), description } as never)
+      const payload = { name: name.trim(), slug: slugify(name), description: description.trim() }
+      if (editingId) {
+        const { error } = await supabase.from('categories').update(payload as never).eq('id', editingId)
+        if (error) throw error
+        return
+      }
+
+      const { error } = await supabase.from('categories').insert(payload as never)
       if (error) throw error
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] })
       setName('')
       setDescription('')
-      toast.success('Category created')
+      setEditingId(null)
+      toast.success(editingId ? 'Category updated' : 'Category created')
     },
     onError: (err: Error) => toast.error(err.message),
   })
+
+  const deleteCategory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('categories').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['categories'] })
+      toast.success('Category deleted')
+    },
+    onError: (err: Error) => toast.error(err.message || 'Could not delete category. Check if products still use it.'),
+  })
+
+  function startEdit(category: NonNullable<typeof categories>[number]) {
+    setEditingId(category.id)
+    setName(category.name)
+    setDescription(category.description || '')
+  }
+
+  function resetForm() {
+    setEditingId(null)
+    setName('')
+    setDescription('')
+  }
 
   return (
     <>
@@ -46,7 +79,14 @@ export default function AdminCategories() {
 
         <div className={styles.grid}>
           <div className={styles.form}>
-            <h2>Add category</h2>
+            <div className={styles.formHeader}>
+              <h2>{editingId ? 'Edit category' : 'Add category'}</h2>
+              {editingId && (
+                <button type="button" className={styles.ghostBtn} onClick={resetForm}>
+                  <RotateCcw size={14} /> Reset
+                </button>
+              )}
+            </div>
             <Input
               label="Name"
               value={name}
@@ -59,8 +99,8 @@ export default function AdminCategories() {
               onChange={e => setDescription(e.target.value)}
               placeholder="Short description"
             />
-            <Button onClick={() => addCategory.mutate()} loading={addCategory.isPending} disabled={!name}>
-              <Plus size={16} /> Add Category
+            <Button onClick={() => saveCategory.mutate()} loading={saveCategory.isPending} disabled={!name}>
+              <Plus size={16} /> {editingId ? 'Save Category' : 'Add Category'}
             </Button>
           </div>
 
@@ -76,6 +116,14 @@ export default function AdminCategories() {
                     <p className={styles.catSlug}>{cat.slug}</p>
                   </div>
                   <p className={styles.catDesc}>{cat.description || 'No description yet'}</p>
+                  <div className={styles.rowActions}>
+                    <button type="button" className={styles.actionBtn} onClick={() => startEdit(cat)}>
+                      <Pencil size={14} /> Edit
+                    </button>
+                    <button type="button" className={styles.dangerBtn} onClick={() => deleteCategory.mutate(cat.id)} disabled={deleteCategory.isPending}>
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
                 </div>
               ))
             )}

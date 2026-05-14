@@ -62,6 +62,13 @@
   gap: 16px;
 }
 
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .form h2,
 .list h2 {
   font-size: 1rem;
@@ -111,6 +118,36 @@
   text-align: right;
 }
 
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actionBtn,
+.dangerBtn,
+.ghostBtn {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: var(--color-neutral-100);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.dangerBtn {
+  color: #fecaca;
+  border-color: rgba(239,68,68,0.22);
+  background: rgba(239,68,68,0.08);
+}
+
 @media (max-width: 768px) {
   .hero,
   .form,
@@ -129,5 +166,9 @@
 
   .catDesc {
     text-align: left;
+  }
+
+  .rowActions {
+    justify-content: flex-start;
   }
 }

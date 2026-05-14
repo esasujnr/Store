@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CalendarRange, Pencil, Plus, RotateCcw, Tag as TagIcon } from 'lucide-react'
+import { CalendarRange, Pencil, Plus, RotateCcw, Tag as TagIcon, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import SEO from '@/components/SEO'
 import Button from '@/components/ui/Button'
@@ -111,6 +111,19 @@ export default function AdminDiscounts() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['discounts'] }),
     onError: () => toast.error('Could not update discount status'),
+  })
+
+  const deleteDiscount = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('discounts').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['discounts'] })
+      if (editingId) handleReset()
+      toast.success('Discount deleted')
+    },
+    onError: () => toast.error('Could not delete discount'),
   })
 
   function handleEdit(discount: Discount) {
@@ -231,6 +244,9 @@ export default function AdminDiscounts() {
                       </button>
                       <button type="button" className={styles.editBtn} onClick={() => handleEdit(discount)}>
                         <Pencil size={14} /> Edit
+                      </button>
+                      <button type="button" className={styles.deleteBtn} onClick={() => deleteDiscount.mutate(discount.id)} disabled={deleteDiscount.isPending}>
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>

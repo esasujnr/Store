@@ -10,6 +10,7 @@ const links = [
   { to: '/admin/discounts', label: 'Discounts', icon: Percent },
   { to: '/admin/reviews', label: 'Reviews', icon: MessageSquareQuote },
   { to: '/admin/content', label: 'Store Content', icon: Settings },
+  { to: '/admin/content?page=global_store&section=footer', label: 'Footer', icon: Settings },
   { to: '/admin/media', label: 'Product Media', icon: Images },
   { to: '/admin/brands', label: 'Brands', icon: Boxes },
   { to: '/admin/collections', label: 'Navigation', icon: Rows3 },
