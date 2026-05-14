@@ -14,12 +14,13 @@ import {
   canPurchaseQuantity,
   convertBaseAmountForGateway,
   formatCurrency,
+  getCheckoutPaymentRoute,
   getGatewayChargeCurrency,
   getInventoryStatus,
   getProductPrice,
-  getStoreRegionPaymentProvider,
   isDigital,
   isPhysical,
+  PAYMENT_PROVIDER_LABELS,
   STORE_REGION_CONFIG,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -27,7 +28,7 @@ import styles from './CheckoutPage.module.css'
 
 export default function CheckoutPage() {
   const { user, profile } = useAuth()
-  const { items, subtotal, hasPhysical, clearCart } = useCart()
+  const { items, subtotal, hasPhysical, hasDigital, clearCart } = useCart()
   const { currency, storeRegion, convertFromBase, formatFromBase } = useCurrency()
   const navigate = useNavigate()
   const siteUrl = ((import.meta as { env: Record<string, string | undefined> }).env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '')
@@ -62,10 +63,11 @@ export default function CheckoutPage() {
 
   const subtotalInCurrency = convertFromBase(subtotal)
   const baseDiscountAmount = useMemo(() => calculateDiscountAmount(subtotal, appliedDiscount), [appliedDiscount, subtotal])
-  const paymentProvider = getStoreRegionPaymentProvider(storeRegion)
+  const checkoutRoute = getCheckoutPaymentRoute(storeRegion, hasDigital, hasPhysical)
+  const paymentProvider = checkoutRoute.provider
   const chargeCurrency = getGatewayChargeCurrency(paymentProvider, currency)
   const selectedStore = STORE_REGION_CONFIG[storeRegion]
-  const checkoutUnavailable = paymentProvider !== 'paystack'
+  const checkoutUnavailable = !checkoutRoute.canCheckout
 
   const displayDiscountAmount = useMemo(() => {
     if (!appliedDiscount) return 0
@@ -155,7 +157,7 @@ export default function CheckoutPage() {
       return
     }
     if (checkoutUnavailable) {
-      toast.error('Online checkout for this store region is temporarily unavailable while we finalize the replacement gateway.')
+      toast.error(checkoutRoute.unavailableReason || 'This checkout route is not available for the current cart.')
       return
     }
 
@@ -184,7 +186,7 @@ export default function CheckoutPage() {
         }
       }
 
-      const hasDigital = items.some(i => isDigital(i.product.fulfillment_type))
+      const hasDigitalItems = items.some(i => isDigital(i.product.fulfillment_type))
       const hasPhysicalItems = items.some(i => isPhysical(i.product.fulfillment_type))
 
       const { data: orderData, error: orderError } = await supabase
@@ -197,13 +199,13 @@ export default function CheckoutPage() {
           payment_provider: paymentProvider,
           discount_code: appliedDiscount?.code || '',
           discount_amount: discountAmountForCharge,
-          has_digital: hasDigital,
+          has_digital: hasDigitalItems,
           has_physical: hasPhysicalItems,
           shipping_address: hasPhysicalItems ? shippingAddress : null,
           shipping_status: hasPhysicalItems ? 'pending' : 'not_required',
           notes: chargeCurrencyDiffers
-            ? `Storefront viewed in ${currency}. Checkout processed in ${chargeCurrency} via ${paymentProvider}.`
-            : '',
+            ? `Storefront viewed in ${currency}. Checkout processed in ${chargeCurrency} via ${PAYMENT_PROVIDER_LABELS[paymentProvider]}.`
+            : `Checkout processed via ${PAYMENT_PROVIDER_LABELS[paymentProvider]}.`,
         })
         .select()
         .single()
@@ -228,16 +230,25 @@ export default function CheckoutPage() {
 
       if (itemsError) throw itemsError
 
-      const { data, error } = await supabase.functions.invoke('initialize-paystack-checkout', {
+      const initializerByProvider: Partial<Record<typeof paymentProvider, string>> = {
+        paystack: 'initialize-paystack-checkout',
+        lemon_squeezy: 'initialize-lemon-checkout',
+        dpo: 'initialize-dpo-checkout',
+        kora: 'initialize-kora-checkout',
+      }
+      const initializer = initializerByProvider[paymentProvider]
+      if (!initializer) throw new Error('This checkout route is not available yet')
+
+      const { data, error } = await supabase.functions.invoke(initializer, {
         body: {
           order_id: order.id,
-          callback_url: `${siteUrl}/orders/${order.id}?provider=paystack&verify=1&reference=${order.id}`,
-          cancel_url: `${siteUrl}/checkout?payment=cancelled&provider=paystack`,
+          callback_url: `${siteUrl}/orders/${order.id}?provider=${paymentProvider}&verify=1&reference=${order.id}`,
+          cancel_url: `${siteUrl}/checkout?payment=cancelled&provider=${paymentProvider}`,
         },
       })
 
       if (error || !data?.authorization_url) {
-        throw error || new Error(data?.error || 'Paystack checkout could not be initialized')
+        throw error || new Error(data?.error || `${PAYMENT_PROVIDER_LABELS[paymentProvider]} checkout could not be initialized`)
       }
 
       window.location.href = data.authorization_url as string
@@ -413,10 +424,10 @@ export default function CheckoutPage() {
                 <div className={styles.paymentMethodList}>
                   <div className={`${styles.paymentMethodButton} ${styles.paymentMethodButtonActive}`}>
                     <div>
-                      <strong>{selectedStore.label}</strong>
-                      <p>{selectedStore.description}</p>
+                      <strong>{checkoutRoute.label}</strong>
+                      <p>{checkoutRoute.description}</p>
                     </div>
-                    <span className={styles.methodTag}>{paymentProvider === 'paystack' ? 'Paystack' : 'Pending'}</span>
+                    <span className={styles.methodTag}>{PAYMENT_PROVIDER_LABELS[paymentProvider]}</span>
                   </div>
                 </div>
               </div>
@@ -451,22 +462,22 @@ export default function CheckoutPage() {
                 disabled={checkoutUnavailable}
               >
                 <CreditCard size={18} />
-                {paymentProvider === 'paystack' ? `Pay with Paystack (${chargeCurrency})` : 'Checkout temporarily unavailable'}
+                {checkoutRoute.canCheckout ? `Pay with ${PAYMENT_PROVIDER_LABELS[paymentProvider]} (${chargeCurrency})` : 'Split checkout required'}
               </Button>
               <div className={styles.currencyNote}>
                 <AlertCircle size={14} />
                 <p>
-                  {paymentProvider === 'paystack'
+                  {checkoutRoute.canCheckout
                     ? chargeCurrencyDiffers
-                      ? `You are browsing in ${currency}, but this ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Paystack. Charge total: ${chargeSummaryLabel}.`
-                      : `This ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Paystack. Charge total: ${chargeSummaryLabel}.`
-                    : `Online checkout for ${selectedStore.label} is temporarily paused while we finalize the replacement gateway.`}
+                      ? `You are browsing in ${currency}, but this ${selectedStore.label} checkout will be charged in ${chargeCurrency} through ${PAYMENT_PROVIDER_LABELS[paymentProvider]}. Charge total: ${chargeSummaryLabel}.`
+                      : `This ${selectedStore.label} checkout will be charged in ${chargeCurrency} through ${PAYMENT_PROVIDER_LABELS[paymentProvider]}. Charge total: ${chargeSummaryLabel}.`
+                    : checkoutRoute.unavailableReason}
                 </p>
               </div>
               <p className={styles.secureNote}>
-                {paymentProvider === 'paystack'
-                  ? 'Secured by Paystack. Your payment info is never stored by the storefront.'
-                  : 'This checkout route will reopen after the replacement gateway is connected.'}
+                {checkoutRoute.canCheckout
+                  ? `Secured by ${PAYMENT_PROVIDER_LABELS[paymentProvider]}. Your payment info is never stored by the storefront.`
+                  : 'Remove either the digital or physical products from this cart and checkout the two order types separately.'}
               </p>
             </div>
           </div>

@@ -22,8 +22,16 @@ export default function OrderDetailPage() {
     if (!shouldVerify) return
     verifiedRef.current = true
     const provider = params.get('provider') || order?.payment_provider || 'paystack'
-    const reference = params.get('reference') || params.get('trxref') || params.get('transaction_id') || id
-    supabase.functions.invoke('verify-payment', { body: { provider, reference, order_id: id, transaction_id: params.get('transaction_id') || undefined } })
+    const reference = params.get('reference') || params.get('trxref') || params.get('transaction_id') || params.get('TransactionToken') || params.get('transaction_token') || id
+    supabase.functions.invoke('verify-payment', {
+      body: {
+        provider,
+        reference,
+        order_id: id,
+        transaction_id: params.get('transaction_id') || params.get('reference') || undefined,
+        transaction_token: params.get('TransactionToken') || params.get('transaction_token') || undefined,
+      },
+    })
       .then(({ data, error }) => {
         if (error || !data?.success) throw error || new Error(data?.error || 'Payment verification failed')
         toast.success('Payment verified')

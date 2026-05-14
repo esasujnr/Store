@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export type SupportedCurrency = 'USD' | 'GHS' | 'NGN'
 export type StoreRegion = 'international' | 'ghana' | 'nigeria'
-export type PaymentProvider = 'paystack' | 'manual'
+export type PaymentProvider = 'paystack' | 'lemon_squeezy' | 'dpo' | 'kora' | 'manual'
 
 export const BASE_CURRENCY: SupportedCurrency = 'GHS'
 export const DEFAULT_CURRENCY: SupportedCurrency = 'USD'
@@ -27,8 +27,8 @@ export const STORE_REGION_CONFIG: Record<StoreRegion, {
     label: 'International Store',
     shortLabel: 'International',
     currency: 'USD',
-    provider: 'manual',
-    description: 'USD storefront for international buyers while international checkout is being finalized.',
+    provider: 'dpo',
+    description: 'USD storefront for international buyers. Digital-only orders use Lemon Squeezy; physical orders use DPO Pay.',
   },
   ghana: {
     key: 'ghana',
@@ -43,8 +43,8 @@ export const STORE_REGION_CONFIG: Record<StoreRegion, {
     label: 'Nigeria Store',
     shortLabel: 'Nigeria Store',
     currency: 'NGN',
-    provider: 'manual',
-    description: 'NGN storefront for Nigerian buyers while regional checkout is being finalized.',
+    provider: 'kora',
+    description: 'NGN checkout for Nigerian buyers through Kora Pay.',
   },
 }
 
@@ -73,8 +73,84 @@ export function getStoreRegionPaymentProvider(region: StoreRegion): PaymentProvi
   return STORE_REGION_CONFIG[normalizeStoreRegion(region)].provider
 }
 
+export const PAYMENT_PROVIDER_LABELS: Record<PaymentProvider, string> = {
+  paystack: 'Paystack',
+  lemon_squeezy: 'Lemon Squeezy',
+  dpo: 'DPO Pay',
+  kora: 'Kora Pay',
+  manual: 'Manual review',
+}
+
+export interface CheckoutPaymentRoute {
+  provider: PaymentProvider
+  currency: SupportedCurrency
+  label: string
+  description: string
+  canCheckout: boolean
+  unavailableReason?: string
+}
+
+export function getCheckoutPaymentRoute(
+  region: StoreRegion,
+  hasDigital: boolean,
+  hasPhysical: boolean,
+): CheckoutPaymentRoute {
+  const normalizedRegion = normalizeStoreRegion(region)
+
+  if (normalizedRegion === 'ghana') {
+    return {
+      provider: 'paystack',
+      currency: 'GHS',
+      label: 'Paystack',
+      description: 'Ghana checkout supports digital files, physical products, and mixed carts through Paystack.',
+      canCheckout: true,
+    }
+  }
+
+  if (normalizedRegion === 'nigeria') {
+    return {
+      provider: 'kora',
+      currency: 'NGN',
+      label: 'Kora Pay',
+      description: 'Nigeria checkout uses Kora Pay for digital files, physical products, and mixed carts.',
+      canCheckout: true,
+    }
+  }
+
+  if (hasDigital && hasPhysical) {
+    return {
+      provider: 'manual',
+      currency: 'USD',
+      label: 'Split checkout required',
+      description: 'International digital and physical products must be checked out separately.',
+      canCheckout: false,
+      unavailableReason: 'Please split this international cart into a digital-only order and a physical-only order. Lemon Squeezy is reserved for digital downloads, while DPO Pay handles physical shipments.',
+    }
+  }
+
+  if (hasDigital) {
+    return {
+      provider: 'lemon_squeezy',
+      currency: 'USD',
+      label: 'Lemon Squeezy',
+      description: 'International digital file orders are processed through Lemon Squeezy.',
+      canCheckout: true,
+    }
+  }
+
+  return {
+    provider: 'dpo',
+    currency: 'USD',
+    label: 'DPO Pay',
+    description: 'International physical product orders are processed through DPO Pay.',
+    canCheckout: true,
+  }
+}
+
 export function getGatewayChargeCurrency(provider: PaymentProvider, displayCurrency: SupportedCurrency): SupportedCurrency {
   if (provider === 'paystack') return 'GHS'
+  if (provider === 'lemon_squeezy' || provider === 'dpo') return 'USD'
+  if (provider === 'kora') return 'NGN'
   return displayCurrency
 }
 
