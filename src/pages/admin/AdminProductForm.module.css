@@ -39,3 +39,14 @@
 
 .inventoryPanel { border: 1px solid rgba(37,214,111,.26); background: rgba(37,214,111,.07); padding: 18px; display: grid; gap: 16px; }
 .inventoryHeader h3 { margin-top: 6px; font-size: 22px; }
+
+.merchPanel { border: 1px solid rgba(59,130,246,.28); background: linear-gradient(135deg, rgba(59,130,246,.09), rgba(37,214,111,.05)); padding: 18px; display: grid; gap: 16px; }
+.merchStatusGrid { display: grid; grid-template-columns: minmax(220px,.7fr) 1fr; gap: 14px; align-items: stretch; }
+.merchStatus { display: grid; gap: 4px; padding: 13px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); }
+.merchStatus strong { color: #fff; }
+.merchStatus span { color: rgba(255,255,255,.64); font-size: 13px; line-height: 1.45; }
+.merchStatusActive { border-color: rgba(37,214,111,.42); background: rgba(37,214,111,.09); }
+.merchStatusWarning { border-color: rgba(245,158,11,.48); background: rgba(245,158,11,.09); }
+.clearSaleBtn { width: fit-content; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: rgba(255,255,255,.82); padding: 9px 12px; font-weight: 900; cursor: pointer; }
+
+@media(max-width:1000px){.merchStatusGrid{grid-template-columns:1fr}}

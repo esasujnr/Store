@@ -571,6 +571,10 @@ export default function AdminProductForm() {
   const recommendedProductOptions = products
     .filter(product => product.id !== id)
     .slice(0, 24)
+  const basePriceValue = Number(form.price || 0)
+  const salePriceValue = Number(form.sale_price || 0)
+  const saleIsActive = salePriceValue > 0 && salePriceValue < basePriceValue
+  const saleIsInvalid = salePriceValue > 0 && basePriceValue > 0 && salePriceValue >= basePriceValue
 
   return (
     <>
@@ -738,22 +742,51 @@ export default function AdminProductForm() {
                       />
                     </div>
                   </div>
-                  <div className={styles.row2}>
-                    <Input
-                      label="Sale Price (GHS)"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={form.sale_price}
-                      onChange={e => setForm(f => ({ ...f, sale_price: e.target.value }))}
-                      hint="Leave blank to keep regular pricing."
-                    />
-                    <Input
-                      label="Sale Label"
-                      value={form.sale_label}
-                      onChange={e => setForm(f => ({ ...f, sale_label: e.target.value }))}
-                      hint="Example: Limited drop, Launch price, Bundle deal."
-                    />
+                  <div className={styles.merchPanel}>
+                    <div className={styles.inventoryHeader}>
+                      <span className={styles.builderEyebrow}>Merchandising status</span>
+                      <h3>Control New Arrival and Sale badges from admin.</h3>
+                    </div>
+                    <div className={styles.row2}>
+                      <Input
+                        label="Sale Price (GHS)"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={form.sale_price}
+                        onChange={e => setForm(f => ({ ...f, sale_price: e.target.value }))}
+                        hint="On Sale turns on only when this is lower than the base price."
+                      />
+                      <Input
+                        label="Sale Label"
+                        value={form.sale_label}
+                        onChange={e => setForm(f => ({ ...f, sale_label: e.target.value }))}
+                        hint="Example: Limited drop, Launch price, Bundle deal."
+                      />
+                    </div>
+                    <div className={styles.merchStatusGrid}>
+                      <label className={styles.checkbox}>
+                        <input type="checkbox" checked={form.is_new_arrival} onChange={e => setForm(f => ({ ...f, is_new_arrival: e.target.checked }))} />
+                        Mark as New Arrival
+                      </label>
+                      <div className={`${styles.merchStatus} ${saleIsActive ? styles.merchStatusActive : ''} ${saleIsInvalid ? styles.merchStatusWarning : ''}`}>
+                        <strong>{saleIsActive ? 'On Sale badge active' : saleIsInvalid ? 'Sale inactive' : 'Regular price'}</strong>
+                        <span>
+                          {saleIsActive
+                            ? `${form.sale_label || 'Sale'} will show on product cards and pages.`
+                            : saleIsInvalid
+                              ? 'Sale price must be lower than base price to show as on sale.'
+                              : 'Add a sale price below base price to show an On Sale badge.'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.clearSaleBtn}
+                      onClick={() => setForm(f => ({ ...f, sale_price: '', sale_label: '' }))}
+                    >
+                      Clear sale pricing
+                    </button>
                   </div>
                   <div className={styles.row2}>
                     <div className={styles.field}>
@@ -1132,10 +1165,6 @@ export default function AdminProductForm() {
                   <label className={styles.checkbox}>
                     <input type="checkbox" checked={form.is_recommended_electronic} onChange={e => setForm(f => ({ ...f, is_recommended_electronic: e.target.checked }))} />
                     Is Recommended Electronic
-                  </label>
-                  <label className={styles.checkbox}>
-                    <input type="checkbox" checked={form.is_new_arrival} onChange={e => setForm(f => ({ ...f, is_new_arrival: e.target.checked }))} />
-                    Mark as New Arrival
                   </label>
                 </div>
               </div>

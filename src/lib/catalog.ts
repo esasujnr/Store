@@ -106,9 +106,7 @@ export function getAdditiveLabel(value?: string | null): string {
 }
 
 export function isNewArrival(product: Product): boolean {
-  if (product.is_new_arrival) return true
-  const created = product.created_at ? new Date(product.created_at).getTime() : 0
-  return created > Date.now() - 1000 * 60 * 60 * 24 * 30
+  return Boolean(product.is_new_arrival)
 }
 
 export const NAV_PRODUCT_CARDS: CatalogOption[] = [

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, ExternalLink, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ExternalLink, ImagePlus, Plus, Save, Trash2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
@@ -9,6 +9,12 @@ import { useAdminSiteContent } from '@/hooks/useSiteContent'
 import { deepMergeContent, getDefaultSiteContent, type GlobalStoreContent, type NavCardContent } from '@/lib/siteContent'
 import { supabase } from '@/lib/supabase'
 import styles from './AdminCollections.module.css'
+
+const NAV_MEDIA_BUCKET = 'product-media'
+
+function sanitizeFileName(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+}
 
 function replaceItem<T>(items: T[], index: number, nextItem: T) {
   return items.map((item, itemIndex) => (itemIndex === index ? nextItem : item))
@@ -40,6 +46,7 @@ export default function AdminCollections() {
   const qc = useQueryClient()
   const { data, isLoading } = useAdminSiteContent()
   const [content, setContent] = useState<GlobalStoreContent>(getDefaultSiteContent('global_store'))
+  const [uploadingCardIndex, setUploadingCardIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (data?.global_store.content) {
@@ -69,6 +76,28 @@ export default function AdminCollections() {
 
   const updateNavbar = (navbar: GlobalStoreContent['navbar']) => setContent(current => ({ ...current, navbar }))
   const updateCard = (index: number, card: NavCardContent) => updateNavbar({ ...content.navbar, productCards: replaceItem(content.navbar.productCards, index, card) })
+
+  async function uploadCardImage(index: number, file?: File) {
+    if (!file) return
+    try {
+      setUploadingCardIndex(index)
+      const safeName = sanitizeFileName(file.name)
+      const storagePath = `navigation/${Date.now()}-${safeName}`
+      const { error } = await supabase.storage.from(NAV_MEDIA_BUCKET).upload(storagePath, file, {
+        cacheControl: '3600',
+        contentType: file.type || undefined,
+        upsert: false,
+      })
+      if (error) throw error
+      const publicUrl = supabase.storage.from(NAV_MEDIA_BUCKET).getPublicUrl(storagePath).data.publicUrl
+      updateCard(index, { ...content.navbar.productCards[index], image: publicUrl })
+      toast.success('Navigation image uploaded')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not upload navigation image')
+    } finally {
+      setUploadingCardIndex(null)
+    }
+  }
 
   return (
     <>
@@ -140,6 +169,19 @@ export default function AdminCollections() {
                     <label><span>Label</span><input value={card.label} onChange={event => updateCard(index, { ...card, label: event.target.value })} /></label>
                     <label><span>Link</span><input value={card.href} onChange={event => updateCard(index, { ...card, href: event.target.value })} /></label>
                     <label><span>Image URL</span><input value={card.image} onChange={event => updateCard(index, { ...card, image: event.target.value })} /></label>
+                    <label className={styles.uploadLine}>
+                      <ImagePlus size={16} />
+                      <span>{uploadingCardIndex === index ? 'Uploading image...' : 'Upload navigation image'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingCardIndex === index}
+                        onChange={event => {
+                          uploadCardImage(index, event.target.files?.[0])
+                          event.currentTarget.value = ''
+                        }}
+                      />
+                    </label>
                     <label><span>Description</span><textarea rows={3} value={card.description} onChange={event => updateCard(index, { ...card, description: event.target.value })} /></label>
                   </div>
                 </article>

@@ -208,6 +208,30 @@
   accent-color: #25d66f;
 }
 
+.uploadLine {
+  min-height: 46px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed rgba(37,214,111,.42);
+  background: rgba(37,214,111,.07);
+  color: #dfffe9;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.uploadLine span {
+  color: #dfffe9 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 14px !important;
+}
+
+.uploadLine input {
+  display: none;
+}
+
 @media(max-width:900px){
   .header,
   .panelHeader,
