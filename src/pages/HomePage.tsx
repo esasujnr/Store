@@ -21,7 +21,10 @@ export default function HomePage() {
   const catalog = products?.length ? products : fallbackProducts
   const [slide, setSlide] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const heroRef = useRef<HTMLElement | null>(null)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const autoPausedUntil = useRef(0)
+  const [heroInView, setHeroInView] = useState(true)
 
   const heroSlides = useMemo(() => {
     const legacySlide = {
@@ -58,17 +61,31 @@ export default function HomePage() {
   }, [content])
 
   useEffect(() => {
-    if (heroSlides.length < 2) return
+    if (heroSlides.length < 2 || !heroInView) return
     const interval = window.setInterval(() => {
+      if (document.hidden || Date.now() < autoPausedUntil.current) return
       setSlide(current => (current + 1) % heroSlides.length)
     }, 7000)
 
     return () => window.clearInterval(interval)
-  }, [heroSlides.length])
+  }, [heroInView, heroSlides.length])
 
   useEffect(() => {
     setSlide(current => (heroSlides.length ? current % heroSlides.length : 0))
   }, [heroSlides.length])
+
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero || typeof IntersectionObserver === 'undefined') return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroInView(Boolean(entry?.isIntersecting)),
+      { threshold: 0.35 },
+    )
+
+    observer.observe(hero)
+    return () => observer.disconnect()
+  }, [])
 
   const featured = useMemo(() => {
     const maxItems = Math.max(1, Number.parseInt(content.featuredProducts.maxItems || '6', 10) || 6)
@@ -111,17 +128,24 @@ export default function HomePage() {
   const panelPosition = content.design.heroPanelPosition.charAt(0).toUpperCase() + content.design.heroPanelPosition.slice(1)
   const heroCanvasClass = `${styles.heroCanvas} ${styles[`panel${panelPosition}`]}`
 
+  function pauseHeroAuto(duration = 10000) {
+    autoPausedUntil.current = Date.now() + duration
+  }
+
   function goPrev() {
+    pauseHeroAuto()
     setSlide(current => (current + heroSlides.length - 1) % heroSlides.length)
   }
 
   function goNext() {
+    pauseHeroAuto()
     setSlide(current => (current + 1) % heroSlides.length)
   }
 
   function handleHeroTouchStart(event: TouchEvent<HTMLElement>) {
     const touch = event.touches[0]
     if (!touch) return
+    pauseHeroAuto(12000)
     touchStart.current = { x: touch.clientX, y: touch.clientY }
   }
 
@@ -136,8 +160,9 @@ export default function HomePage() {
     const isIntentionalSwipe = Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2
     if (!isIntentionalSwipe) return
 
-    if (deltaX < 0) goNext()
-    else goPrev()
+    pauseHeroAuto(12000)
+    if (deltaX < 0) setSlide(current => (current + 1) % heroSlides.length)
+    else setSlide(current => (current + heroSlides.length - 1) % heroSlides.length)
   }
 
   const renderHomeSection = (sectionKey: HomeSectionKey) => {
@@ -360,6 +385,7 @@ export default function HomePage() {
       <SEO title={content.seo.title} description={content.seo.description} url="/" />
 
       <section
+        ref={heroRef}
         className={styles.heroShell}
         onTouchStart={handleHeroTouchStart}
         onTouchEnd={handleHeroTouchEnd}
@@ -393,7 +419,15 @@ export default function HomePage() {
             )}
             <div className={styles.heroDots}>
               {heroSlides.map((_, index) => (
-                <button key={index} className={index === slide ? styles.dotActive : ''} onClick={() => setSlide(index)} aria-label={`Go to slide ${index + 1}`} />
+                <button
+                  key={index}
+                  className={index === slide ? styles.dotActive : ''}
+                  onClick={() => {
+                    pauseHeroAuto()
+                    setSlide(index)
+                  }}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
               ))}
             </div>
           </article>

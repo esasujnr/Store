@@ -51,7 +51,10 @@ export default function DronesPage() {
   const { formatFromBase } = useCurrency()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
+  const heroRef = useRef<HTMLElement | null>(null)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const autoPausedUntil = useRef(0)
+  const [heroInView, setHeroInView] = useState(true)
   const content = siteContent ?? getDefaultSiteContent('drones_page')
   const maxCatalogItems = Math.max(1, Number.parseInt(content.catalog.maxItems, 10) || 3)
 
@@ -96,29 +99,50 @@ export default function DronesPage() {
   const featuredProduct = droneProducts[0]
   const comparisonProducts = droneProducts.slice(0, maxCatalogItems)
 
+  function pauseHeroAuto(duration = 10000) {
+    autoPausedUntil.current = Date.now() + duration
+  }
+
   function goPrev() {
+    pauseHeroAuto()
     setCurrentSlide(value => (value === 0 ? heroSlides.length - 1 : value - 1))
   }
 
   function goNext() {
+    pauseHeroAuto()
     setCurrentSlide(value => (value + 1) % heroSlides.length)
   }
 
   useEffect(() => {
-    if (heroSlides.length < 2) return
+    if (heroSlides.length < 2 || !heroInView) return
     const interval = window.setInterval(() => {
+      if (document.hidden || Date.now() < autoPausedUntil.current) return
       setCurrentSlide(value => (value + 1) % heroSlides.length)
     }, 7000)
     return () => window.clearInterval(interval)
-  }, [heroSlides.length])
+  }, [heroInView, heroSlides.length])
 
   useEffect(() => {
     setCurrentSlide(value => (heroSlides.length ? value % heroSlides.length : 0))
   }, [heroSlides.length])
 
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero || typeof IntersectionObserver === 'undefined') return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroInView(Boolean(entry?.isIntersecting)),
+      { threshold: 0.35 },
+    )
+
+    observer.observe(hero)
+    return () => observer.disconnect()
+  }, [])
+
   function handleHeroTouchStart(event: TouchEvent<HTMLElement>) {
     const touch = event.touches[0]
     if (!touch) return
+    pauseHeroAuto(12000)
     touchStart.current = { x: touch.clientX, y: touch.clientY }
   }
 
@@ -133,8 +157,9 @@ export default function DronesPage() {
     const isIntentionalSwipe = Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2
     if (!isIntentionalSwipe) return
 
-    if (deltaX < 0) goNext()
-    else goPrev()
+    pauseHeroAuto(12000)
+    if (deltaX < 0) setCurrentSlide(value => (value + 1) % heroSlides.length)
+    else setCurrentSlide(value => (value === 0 ? heroSlides.length - 1 : value - 1))
   }
 
   return (
@@ -151,7 +176,7 @@ export default function DronesPage() {
 
       <div className={styles.page}>
         {content.visibility.hero && (
-        <section className={styles.hero} onTouchStart={handleHeroTouchStart} onTouchEnd={handleHeroTouchEnd}>
+        <section ref={heroRef} className={styles.hero} onTouchStart={handleHeroTouchStart} onTouchEnd={handleHeroTouchEnd}>
           {activeSlide && (
             <>
               <img src={activeSlide.image} alt={activeSlide.title} className={styles.heroImage} />
