@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ChevronDown, LogOut, Menu, ShieldCheck, ShoppingCart, User, X } from 'lucide-react'
 import { getBrandSlug, getProductBrand } from '@/lib/catalog'
@@ -16,6 +16,8 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [productsOpen, setProductsOpen] = useState(false)
   const [brandsOpen, setBrandsOpen] = useState(false)
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false)
+  const [mobileBrandsOpen, setMobileBrandsOpen] = useState(false)
   const location = useLocation()
   const previewMode = location.search.includes('preview=draft') ? 'draft' : 'published'
   const { data: globalContent } = useSiteContent('global_store', previewMode)
@@ -73,6 +75,20 @@ export default function Navbar() {
     return sortedBrands.slice(0, maxBrandCards)
   }, [brands, content.navbar.brandMode, content.navbar.featuredBrandSlugs, maxBrandCards, navProducts])
 
+  useEffect(() => {
+    setProductsOpen(false)
+    setBrandsOpen(false)
+    setMenuOpen(false)
+    setMobileProductsOpen(false)
+    setMobileBrandsOpen(false)
+  }, [location.pathname])
+
+  function closeMobileMenu() {
+    setMenuOpen(false)
+    setMobileProductsOpen(false)
+    setMobileBrandsOpen(false)
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
@@ -85,7 +101,7 @@ export default function Navbar() {
             <NavLink to="/shop" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}>{content.navbar.shopLabel}</NavLink>
           )}
           {content.navbar.showNewArrivals && (
-            <NavLink to="/collection/new-arrivals" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}>{content.navbar.newArrivalsLabel}</NavLink>
+            <NavLink to="/collection/new-arrivals" className={({ isActive }) => `${styles.navLink} ${styles.newArrivalLink} ${isActive ? styles.active : ''}`}>{content.navbar.newArrivalsLabel}</NavLink>
           )}
 
           {content.navbar.showProducts && (
@@ -106,7 +122,12 @@ export default function Navbar() {
                   </div>
                   <div className={styles.megaGrid}>
                     {productCards.map(card => (
-                      <Link key={card.id} to={card.href || '/shop'} className={styles.megaCard} onClick={() => setProductsOpen(false)}>
+                      <Link
+                        key={card.id}
+                        to={card.href || '/shop'}
+                        className={`${styles.megaCard} ${card.href?.includes('new-arrivals') ? styles.megaCardFeatured : ''}`}
+                        onClick={() => setProductsOpen(false)}
+                      >
                         {card.image && (
                           <span className={styles.cardImage}>
                             <img src={card.image} alt="" loading="lazy" />
@@ -179,7 +200,7 @@ export default function Navbar() {
             </select>
           </label>
 
-          <Link to="/cart" className={styles.cartLink} aria-label="Cart">
+          <Link to="/cart" className={`${styles.cartLink} ${totalItems > 0 ? styles.cartLinkActive : ''}`} aria-label={`Cart${totalItems > 0 ? `, ${totalItems} item${totalItems === 1 ? '' : 's'}` : ''}`}>
             <ShoppingCart size={20} />
             {totalItems > 0 && <span>{totalItems}</span>}
           </Link>
@@ -211,21 +232,75 @@ export default function Navbar() {
         <div className={styles.mobilePanel}>
           <div className={styles.mobileHeader}>
             <img src="/brand/wingxtra-logo-white.svg" alt="Wingxtra" />
-            <button onClick={() => setMenuOpen(false)} aria-label="Close menu"><X size={22} /></button>
+            <button onClick={closeMobileMenu} aria-label="Close menu"><X size={22} /></button>
           </div>
-          {content.navbar.showShop && <Link to="/shop" onClick={() => setMenuOpen(false)}>{content.navbar.shopLabel}</Link>}
-          {content.navbar.showNewArrivals && <Link to="/collection/new-arrivals" onClick={() => setMenuOpen(false)}>{content.navbar.newArrivalsLabel}</Link>}
-          {content.navbar.showProducts && <div className={styles.mobileGroupTitle}>{content.navbar.productsLabel}</div>}
-          {content.navbar.showProducts && productCards.map(card => (
-            <Link key={card.id} to={card.href || '/shop'} onClick={() => setMenuOpen(false)}>{card.label}</Link>
-          ))}
-          {content.navbar.showBrands && <div className={styles.mobileGroupTitle}>{content.navbar.brandsLabel}</div>}
-          {content.navbar.showBrands && <Link to="/collection/brands" onClick={() => setMenuOpen(false)}>{content.navbar.brandsViewAllLabel}</Link>}
-          {content.navbar.showBrands && brandCards.map(brand => (
-            <Link key={brand.slug} to={`/brand/${brand.slug}`} onClick={() => setMenuOpen(false)}>{brand.name}</Link>
-          ))}
-          {isAdmin && <Link to="/admin" onClick={() => setMenuOpen(false)}>Admin</Link>}
-          {user ? <button onClick={() => { void signOut(); setMenuOpen(false) }}>Sign out</button> : <Link to="/login" onClick={() => setMenuOpen(false)}>Account</Link>}
+          {content.navbar.showShop && <Link to="/shop" onClick={closeMobileMenu}>{content.navbar.shopLabel}</Link>}
+          {content.navbar.showNewArrivals && <Link className={styles.mobileAttentionLink} to="/collection/new-arrivals" onClick={closeMobileMenu}>{content.navbar.newArrivalsLabel}</Link>}
+          {content.navbar.showProducts && (
+            <div className={styles.mobileDropdown}>
+              <button
+                type="button"
+                className={styles.mobileDropdownButton}
+                onClick={() => setMobileProductsOpen(open => !open)}
+                aria-expanded={mobileProductsOpen}
+              >
+                <span>{content.navbar.productsLabel}</span>
+                <ChevronDown size={18} />
+              </button>
+              {mobileProductsOpen && (
+                <div className={styles.mobileCardGrid}>
+                  {productCards.map(card => (
+                    <Link
+                      key={card.id}
+                      to={card.href || '/shop'}
+                      className={`${styles.mobileMegaCard} ${card.href?.includes('new-arrivals') ? styles.mobileMegaCardFeatured : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      {card.image ? <img src={card.image} alt="" loading="lazy" /> : <span className={styles.mobileImageFallback} aria-hidden="true" />}
+                      <span>
+                        <strong>{card.label}</strong>
+                        <small>{card.description}</small>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {content.navbar.showBrands && (
+            <div className={styles.mobileDropdown}>
+              <button
+                type="button"
+                className={styles.mobileDropdownButton}
+                onClick={() => setMobileBrandsOpen(open => !open)}
+                aria-expanded={mobileBrandsOpen}
+              >
+                <span>{content.navbar.brandsLabel}</span>
+                <ChevronDown size={18} />
+              </button>
+              {mobileBrandsOpen && (
+                <div className={styles.mobileCardGrid}>
+                  <Link to="/collection/brands" className={`${styles.mobileMegaCard} ${styles.mobileMegaCardTextOnly}`} onClick={closeMobileMenu}>
+                    <span>
+                      <strong>{content.navbar.brandsViewAllLabel}</strong>
+                      <small>Browse every Wingxtra and curated UAV brand.</small>
+                    </span>
+                  </Link>
+                  {brandCards.map(brand => (
+                    <Link key={brand.slug} to={`/brand/${brand.slug}`} className={styles.mobileMegaCard} onClick={closeMobileMenu}>
+                      <img src={brand.image} alt="" loading="lazy" />
+                      <span>
+                        <strong>{brand.name}</strong>
+                        <small>{brand.count} product{brand.count === 1 ? '' : 's'}</small>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {isAdmin && <Link to="/admin" onClick={closeMobileMenu}>Admin</Link>}
+          {user ? <button onClick={() => { void signOut(); closeMobileMenu() }}>Sign out</button> : <Link to="/login" onClick={closeMobileMenu}>Account</Link>}
         </div>
       )}
     </header>

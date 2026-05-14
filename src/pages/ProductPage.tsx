@@ -779,7 +779,7 @@ export default function ProductPage() {
                 <span>{productBrand}</span>
                 <span>{getFamilyLabel(productFamily)}</span>
                 {productAdditiveLabel && <span>{productAdditiveLabel}</span>}
-                {isNewArrival(displayProduct) && <span>New arrival</span>}
+                {isNewArrival(displayProduct) && <span className={styles.newBadge}>New arrival</span>}
               </div>
               {productVisibility.trustLine && <p className={styles.trustLine}>{productTrustLine}</p>}
 
@@ -1149,7 +1149,7 @@ export default function ProductPage() {
                 <span className={styles.typeBadge}>{getDeliveryLabel(productDelivery, displayProduct.fulfillment_type)}</span>
                 {productAdditiveLabel && <span className={styles.typeBadge}>{productAdditiveLabel}</span>}
                 {onSale && <span className={styles.saleBadge}>{displayProduct.sale_label || 'On Sale'}</span>}
-                {isNewArrival(displayProduct) && <span className={styles.saleBadge}>New Arrival</span>}
+                {isNewArrival(displayProduct) && <span className={styles.newBadge}>New Arrival</span>}
               </div>
 
               <h1 className={styles.title}>{displayProduct.name}</h1>

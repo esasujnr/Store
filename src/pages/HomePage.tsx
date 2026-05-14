@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties, useMemo, useState } from 'react'
+import { Fragment, type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ChevronDown, PackageCheck, ShieldCheck, Wrench } from 'lucide-react'
 import SEO from '@/components/SEO'
@@ -55,6 +55,19 @@ export default function HomePage() {
 
     return editableSlides.length ? editableSlides : [legacySlide]
   }, [content])
+
+  useEffect(() => {
+    if (heroSlides.length < 2) return
+    const interval = window.setInterval(() => {
+      setSlide(current => (current + 1) % heroSlides.length)
+    }, 7000)
+
+    return () => window.clearInterval(interval)
+  }, [heroSlides.length])
+
+  useEffect(() => {
+    setSlide(current => (heroSlides.length ? current % heroSlides.length : 0))
+  }, [heroSlides.length])
 
   const featured = useMemo(() => {
     const maxItems = Math.max(1, Number.parseInt(content.featuredProducts.maxItems || '6', 10) || 6)
@@ -323,7 +336,7 @@ export default function HomePage() {
           backgroundImage: `linear-gradient(90deg, rgba(3, 8, 4, var(--home-hero-overlay)), rgba(3, 8, 4, 0.26) 48%, rgba(3, 8, 4, 0.86)), url(${active.image})`,
         }}
       >
-        <button className={`${styles.heroArrow} ${styles.heroArrowLeft}`} onClick={() => setSlide((slide + heroSlides.length - 1) % heroSlides.length)} aria-label="Previous slide">
+        <button className={`${styles.heroArrow} ${styles.heroArrowLeft}`} onClick={() => setSlide(current => (current + heroSlides.length - 1) % heroSlides.length)} aria-label="Previous slide">
           <ArrowLeft size={30} strokeWidth={1.35} aria-hidden="true" />
         </button>
 
@@ -354,7 +367,7 @@ export default function HomePage() {
           </article>
         </div>
 
-        <button className={`${styles.heroArrow} ${styles.heroArrowRight}`} onClick={() => setSlide((slide + 1) % heroSlides.length)} aria-label="Next slide">
+        <button className={`${styles.heroArrow} ${styles.heroArrowRight}`} onClick={() => setSlide(current => (current + 1) % heroSlides.length)} aria-label="Next slide">
           <ArrowRight size={30} strokeWidth={1.35} aria-hidden="true" />
         </button>
       </section>

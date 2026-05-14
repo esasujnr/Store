@@ -582,7 +582,16 @@
 
   .heroStats strong { font-size: 1.1rem; }
   .heroStats span { font-size: 0.58rem; }
-  .heroArrow { display: none; }
+  .heroArrow {
+    width: 44px;
+    height: 44px;
+    top: auto;
+    bottom: 26px;
+    transform: none;
+    background: rgba(0, 0, 0, 0.42);
+  }
+  .heroArrowLeft { left: 18px; }
+  .heroArrowRight { right: 18px; }
   .sectionHead { display: grid; }
   .story { padding: 54px 0; }
 
