@@ -21,7 +21,6 @@ import {
   isDigital,
   isPhysical,
   STORE_REGION_CONFIG,
-  type PaymentProvider,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import styles from './CheckoutPage.module.css'
@@ -63,9 +62,10 @@ export default function CheckoutPage() {
 
   const subtotalInCurrency = convertFromBase(subtotal)
   const baseDiscountAmount = useMemo(() => calculateDiscountAmount(subtotal, appliedDiscount), [appliedDiscount, subtotal])
-  const paymentProvider = getStoreRegionPaymentProvider(storeRegion) as PaymentProvider
+  const paymentProvider = getStoreRegionPaymentProvider(storeRegion)
   const chargeCurrency = getGatewayChargeCurrency(paymentProvider, currency)
   const selectedStore = STORE_REGION_CONFIG[storeRegion]
+  const checkoutUnavailable = paymentProvider !== 'paystack'
 
   const displayDiscountAmount = useMemo(() => {
     if (!appliedDiscount) return 0
@@ -148,27 +148,14 @@ export default function CheckoutPage() {
     setDiscountCode('')
   }
 
-  async function verifyPayment(provider: PaymentProvider, payload: Record<string, string>) {
-    const { data, error } = await supabase.functions.invoke('verify-payment', {
-      body: {
-        provider,
-        ...payload,
-      },
-    })
-
-    if (error) {
-      throw error
-    }
-
-    if (!data?.success) {
-      throw new Error(data?.error || 'Payment could not be verified')
-    }
-  }
-
   async function handlePayment() {
     if (!user) return
     if (hasPhysical && !shippingAddress.address_line1) {
       toast.error('Please provide a shipping address')
+      return
+    }
+    if (checkoutUnavailable) {
+      toast.error('Online checkout for this store region is temporarily unavailable while we finalize the replacement gateway.')
       return
     }
 
@@ -240,28 +227,6 @@ export default function CheckoutPage() {
         .insert(orderItems)
 
       if (itemsError) throw itemsError
-
-      if (paymentProvider === 'flutterwave') {
-        const { data, error } = await supabase.functions.invoke('initialize-flutterwave-checkout', {
-          body: {
-            order_id: order.id,
-            redirect_url: `${siteUrl}/orders/${order.id}?provider=flutterwave&verify=1`,
-            store_region: storeRegion,
-            customer: {
-              full_name: shippingAddress.full_name || profile?.full_name || user.email || 'Wingxtra Customer',
-              phone: shippingAddress.phone || '',
-              country: shippingAddress.country || '',
-            },
-          },
-        })
-
-        if (error || !data?.url) {
-          throw error || new Error(data?.error || 'Flutterwave checkout is unavailable')
-        }
-
-        window.location.href = data.url as string
-        return
-      }
 
       const { data, error } = await supabase.functions.invoke('initialize-paystack-checkout', {
         body: {
@@ -451,7 +416,7 @@ export default function CheckoutPage() {
                       <strong>{selectedStore.label}</strong>
                       <p>{selectedStore.description}</p>
                     </div>
-                    <span className={styles.methodTag}>{paymentProvider === 'paystack' ? 'Paystack' : 'Flutterwave'}</span>
+                    <span className={styles.methodTag}>{paymentProvider === 'paystack' ? 'Paystack' : 'Pending'}</span>
                   </div>
                 </div>
               </div>
@@ -483,9 +448,10 @@ export default function CheckoutPage() {
                 fullWidth
                 onClick={handlePayment}
                 loading={loading}
+                disabled={checkoutUnavailable}
               >
                 <CreditCard size={18} />
-                {paymentProvider === 'flutterwave' ? `Pay with Flutterwave (${chargeCurrency})` : `Pay with Paystack (${chargeCurrency})`}
+                {paymentProvider === 'paystack' ? `Pay with Paystack (${chargeCurrency})` : 'Checkout temporarily unavailable'}
               </Button>
               <div className={styles.currencyNote}>
                 <AlertCircle size={14} />
@@ -494,13 +460,13 @@ export default function CheckoutPage() {
                     ? chargeCurrencyDiffers
                       ? `You are browsing in ${currency}, but this ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Paystack. Charge total: ${chargeSummaryLabel}.`
                       : `This ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Paystack. Charge total: ${chargeSummaryLabel}.`
-                    : `This ${selectedStore.label} checkout will be charged in ${chargeCurrency} through Flutterwave. Charge total: ${chargeSummaryLabel}.`}
+                    : `Online checkout for ${selectedStore.label} is temporarily paused while we finalize the replacement gateway.`}
                 </p>
               </div>
               <p className={styles.secureNote}>
-                {paymentProvider === 'flutterwave'
-                  ? 'Secured by Flutterwave. Card and wallet details are handled on Flutterwave hosted checkout.'
-                  : 'Secured by Paystack. Your payment info is never stored by the storefront.'}
+                {paymentProvider === 'paystack'
+                  ? 'Secured by Paystack. Your payment info is never stored by the storefront.'
+                  : 'This checkout route will reopen after the replacement gateway is connected.'}
               </p>
             </div>
           </div>

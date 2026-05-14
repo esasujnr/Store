@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export type SupportedCurrency = 'USD' | 'GHS' | 'NGN'
 export type StoreRegion = 'international' | 'ghana' | 'nigeria'
-export type PaymentProvider = 'paystack' | 'flutterwave' | 'manual'
+export type PaymentProvider = 'paystack' | 'manual'
 
 export const BASE_CURRENCY: SupportedCurrency = 'GHS'
 export const DEFAULT_CURRENCY: SupportedCurrency = 'USD'
@@ -27,8 +27,8 @@ export const STORE_REGION_CONFIG: Record<StoreRegion, {
     label: 'International Store',
     shortLabel: 'International',
     currency: 'USD',
-    provider: 'flutterwave',
-    description: 'USD checkout for buyers outside Ghana and Nigeria.',
+    provider: 'manual',
+    description: 'USD storefront for international buyers while international checkout is being finalized.',
   },
   ghana: {
     key: 'ghana',
@@ -43,8 +43,8 @@ export const STORE_REGION_CONFIG: Record<StoreRegion, {
     label: 'Nigeria Store',
     shortLabel: 'Nigeria Store',
     currency: 'NGN',
-    provider: 'flutterwave',
-    description: 'NGN checkout for Nigerian customers.',
+    provider: 'manual',
+    description: 'NGN storefront for Nigerian buyers while regional checkout is being finalized.',
   },
 }
 

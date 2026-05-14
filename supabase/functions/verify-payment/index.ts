@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) return json({ error: "Unauthorized" }, 401);
 
-    const { provider, order_id, reference, session_id, transaction_id, tx_ref } = await req.json();
+    const { provider, order_id, reference, session_id } = await req.json();
     if (!provider || !order_id) return json({ error: "provider and order_id are required" }, 400);
 
     const admin = createClient(
@@ -160,61 +160,6 @@ Deno.serve(async (req: Request) => {
 
       await finalizeOrder(admin, order_id, stripeData.payment_intent || stripeData.id, "stripe", user.email || undefined);
       return json({ success: true, status: "paid", provider: "stripe" });
-    }
-
-    if (provider === "flutterwave") {
-      const flutterwaveSecret = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
-      if (!flutterwaveSecret) return json({ error: "Missing FLUTTERWAVE_SECRET_KEY" }, 500);
-      if (!transaction_id && !tx_ref) return json({ error: "transaction_id or tx_ref is required for Flutterwave verification" }, 400);
-
-      let resolvedTransactionId = transaction_id;
-
-      if (!resolvedTransactionId && tx_ref) {
-        const lookupRes = await fetch(`https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=${encodeURIComponent(tx_ref)}`, {
-          headers: { Authorization: `Bearer ${flutterwaveSecret}` },
-        });
-        const lookupData = await lookupRes.json();
-
-        if (!lookupRes.ok || lookupData?.status !== "success" || !lookupData?.data?.id) {
-          return json({ error: lookupData?.message || "Flutterwave transaction lookup failed" }, 400);
-        }
-
-        resolvedTransactionId = String(lookupData.data.id);
-      }
-
-      const verifyRes = await fetch(`https://api.flutterwave.com/v3/transactions/${encodeURIComponent(String(resolvedTransactionId))}/verify`, {
-        headers: { Authorization: `Bearer ${flutterwaveSecret}` },
-      });
-      const verifyData = await verifyRes.json();
-
-      if (!verifyRes.ok || verifyData?.status !== "success" || verifyData?.data?.status !== "successful") {
-        return json({ error: verifyData?.message || "Flutterwave verification failed" }, 400);
-      }
-
-      const verifiedAmount = Number(verifyData?.data?.amount || 0);
-      const verifiedCurrency = String(verifyData?.data?.currency || order.currency).toUpperCase();
-      const verifiedReference = String(verifyData?.data?.tx_ref || "");
-
-      if (verifiedReference !== order.id) {
-        return json({ error: "Flutterwave reference does not match this order" }, 400);
-      }
-
-      if (verifiedCurrency !== String(order.currency).toUpperCase()) {
-        return json({ error: "Flutterwave currency does not match this order" }, 400);
-      }
-
-      if (verifiedAmount + 0.01 < Number(order.total_amount)) {
-        return json({ error: "Flutterwave amount is lower than the order total" }, 400);
-      }
-
-      await finalizeOrder(
-        admin,
-        order_id,
-        String(verifyData?.data?.flw_ref || verifyData?.data?.id || resolvedTransactionId),
-        "flutterwave",
-        user.email || undefined,
-      );
-      return json({ success: true, status: "paid", provider: "flutterwave" });
     }
 
     return json({ error: "Unsupported provider" }, 400);
