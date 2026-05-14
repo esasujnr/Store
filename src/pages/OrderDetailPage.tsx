@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Download, Package, Truck } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -15,6 +15,7 @@ export default function OrderDetailPage() {
   const [params] = useSearchParams()
   const { data: order, isLoading, refetch } = useOrder(id)
   const verifiedRef = useRef(false)
+  const [refreshingDownloadId, setRefreshingDownloadId] = useState<string | null>(null)
 
   useEffect(() => {
     const shouldVerify = params.get('verify') === '1' && id && !verifiedRef.current
@@ -33,6 +34,24 @@ export default function OrderDetailPage() {
         toast.error('Payment could not be verified yet')
       })
   }, [id, order?.payment_provider, params, refetch])
+
+  async function refreshDownload(orderItemId: string) {
+    setRefreshingDownloadId(orderItemId)
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-download', {
+        body: { order_item_id: orderItemId },
+      })
+      if (error || !data?.url) throw error || new Error(data?.error || 'Download link could not be generated')
+      await refetch()
+      window.open(data.url as string, '_blank', 'noopener,noreferrer')
+      toast.success('Secure download link refreshed')
+    } catch (error) {
+      console.error(error)
+      toast.error('Could not refresh this download link')
+    } finally {
+      setRefreshingDownloadId(null)
+    }
+  }
 
   if (isLoading) return <LoadingSpinner fullPage />
   if (!order) return <div className={styles.page}><div className="container"><h1>Order not found</h1><Link to="/orders">Back to orders</Link></div></div>
@@ -60,7 +79,19 @@ export default function OrderDetailPage() {
                 <div>
                   <h3>{item.product?.name || 'Product'}</h3>
                   <p>{getFulfillmentLabel(item.fulfillment_type)} x {item.quantity}</p>
-                  {item.download_url && <a href={item.download_url} target="_blank" rel="noreferrer" className={styles.download}><Download size={15} /> Download file</a>}
+                  {item.fulfillment_type === 'fdm' && order.status === 'paid' && (
+                    <div className={styles.downloadActions}>
+                      {item.download_url && <a href={item.download_url} target="_blank" rel="noreferrer" className={styles.download}><Download size={15} /> Download current link</a>}
+                      <button
+                        type="button"
+                        className={styles.refreshDownload}
+                        onClick={() => refreshDownload(item.id)}
+                        disabled={refreshingDownloadId === item.id}
+                      >
+                        {refreshingDownloadId === item.id ? 'Preparing link...' : 'Refresh secure link'}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <strong>{formatCurrency(item.unit_price * item.quantity, order.currency)}</strong>
               </div>

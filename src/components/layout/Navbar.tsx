@@ -240,7 +240,7 @@ export default function Navbar() {
       </header>
 
       {menuOpen && (
-        <div className={styles.mobilePanel}>
+        <div className={styles.mobilePanel} data-mobile-menu="true">
           <div className={styles.mobileHeader}>
             <img src="/brand/wingxtra-logo-white.svg" alt="Wingxtra" />
             <button onClick={closeMobileMenu} aria-label="Close menu"><X size={22} /></button>

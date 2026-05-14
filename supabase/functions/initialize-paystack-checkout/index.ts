@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: order, error: orderError } = await admin
       .from("orders")
-      .select("id, user_id, total_amount, currency, status")
+      .select("id, user_id, total_amount, currency, status, discount_code")
       .eq("id", order_id)
       .single();
 
@@ -52,6 +52,25 @@ Deno.serve(async (req: Request) => {
     if (order.status !== "pending") return json({ error: "Order is not payable" }, 400);
     if (String(order.currency).toUpperCase() !== "GHS") {
       return json({ error: "Paystack checkout must be initialized in GHS for this store setup" }, 400);
+    }
+
+    if (order.discount_code) {
+      const { data: discount, error: discountError } = await admin
+        .from("discounts")
+        .select("code, is_active, starts_at, ends_at, usage_limit, used_count")
+        .eq("code", order.discount_code)
+        .maybeSingle();
+
+      const now = Date.now();
+      const isExpired = discount?.ends_at && new Date(discount.ends_at).getTime() < now;
+      const isScheduled = discount?.starts_at && new Date(discount.starts_at).getTime() > now;
+      const usageLimitReached = discount?.usage_limit !== null
+        && discount?.usage_limit !== undefined
+        && Number(discount.used_count || 0) >= Number(discount.usage_limit);
+
+      if (discountError || !discount || !discount.is_active || isExpired || isScheduled || usageLimitReached) {
+        return json({ error: "Discount code is no longer available" }, 400);
+      }
     }
 
     const initializeRes = await fetch("https://api.paystack.co/transaction/initialize", {

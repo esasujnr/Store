@@ -112,6 +112,13 @@ export default function CheckoutPage() {
 
       const discount = data as Discount
       const now = Date.now()
+      const usageLimit = discount.usage_limit ?? discount.max_uses ?? null
+      if (usageLimit !== null && Number(discount.used_count || 0) >= Number(usageLimit)) {
+        toast.error('This discount code has reached its usage limit')
+        setAppliedDiscount(null)
+        return
+      }
+
       if ((discount.starts_at && new Date(discount.starts_at).getTime() > now) || (discount.ends_at && new Date(discount.ends_at).getTime() < now)) {
         toast.error('This discount is not active right now')
         setAppliedDiscount(null)

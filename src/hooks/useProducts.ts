@@ -3,6 +3,11 @@ import { supabase } from '@/lib/supabase'
 import type { BundleItem, Category, Discount, MarketplaceBrand, Product, ProductMedia, Review } from '@/lib/database.types'
 
 const productSelect = '*, category:categories(*), marketplace_brand:marketplace_brands(*)'
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isUuid(value?: string | null) {
+  return Boolean(value && uuidPattern.test(value))
+}
 
 function normalizeProduct(product: unknown): Product {
   const p = product as Product
@@ -15,6 +20,24 @@ function normalizeProduct(product: unknown): Product {
     tags: Array.isArray(p.tags) ? p.tags : [],
     specs: (p.specs || {}) as Record<string, unknown>,
   }
+}
+
+async function attachReviewProfiles<T extends Review>(reviews: T[]): Promise<T[]> {
+  const profileIds = [...new Set(reviews.map(review => review.user_id).filter(isUuid))]
+  if (profileIds.length === 0) return reviews
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', profileIds)
+
+  if (error || !data) return reviews
+
+  const profiles = new Map(data.map(profile => [profile.id, profile]))
+  return reviews.map(review => ({
+    ...review,
+    profile: profiles.get(review.user_id) || review.profile || null,
+  }))
 }
 
 export function useProducts(categorySlug?: string) {
@@ -81,7 +104,7 @@ export function useCategories() {
 export function useBundleItems(productId: string) {
   return useQuery({
     queryKey: ['bundle-items', productId],
-    enabled: Boolean(productId),
+    enabled: isUuid(productId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('product_bundle_items')
@@ -100,16 +123,16 @@ export function useBundleItems(productId: string) {
 export function useProductReviews(productId: string) {
   return useQuery({
     queryKey: ['product-reviews', productId],
-    enabled: Boolean(productId),
+    enabled: isUuid(productId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('reviews')
-        .select('*, profile:profiles(id, full_name, avatar_url)')
+        .select('*')
         .eq('product_id', productId)
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
       if (error) return [] as Review[]
-      return (data || []) as Review[]
+      return attachReviewProfiles((data || []) as Review[])
     },
   })
 }
@@ -120,10 +143,10 @@ export function useAdminReviews() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('reviews')
-        .select('*, profile:profiles(id, full_name, avatar_url), product:products(id, name, slug, image_url)')
+        .select('*, product:products(id, name, slug, image_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return (data || []) as Review[]
+      return attachReviewProfiles((data || []) as Review[])
     },
   })
 }
