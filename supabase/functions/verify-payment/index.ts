@@ -14,19 +14,6 @@ function json(data: unknown, status = 200) {
   });
 }
 
-function escapeXml(value: unknown) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function getXmlValue(xml: string, tag: string) {
-  return new DOMParser().parseFromString(xml, "text/xml").querySelector(tag)?.textContent || "";
-}
-
 async function sendOrderNotification(orderId: string, eventType: string) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -114,7 +101,7 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) return json({ error: "Unauthorized" }, 401);
 
-    const { provider, order_id, reference, session_id, transaction_token } = await req.json();
+    const { provider, order_id, reference, session_id } = await req.json();
     if (!provider || !order_id) return json({ error: "provider and order_id are required" }, 400);
 
     const admin = createClient(
@@ -193,37 +180,6 @@ Deno.serve(async (req: Request) => {
 
       await finalizeOrder(admin, order_id, verifyData?.data?.reference || koraReference, "kora", user.email || undefined);
       return json({ success: true, status: "paid", provider: "kora" });
-    }
-
-    if (provider === "dpo") {
-      const companyToken = Deno.env.get("DPO_COMPANY_TOKEN");
-      if (!companyToken) return json({ error: "Missing DPO_COMPANY_TOKEN" }, 500);
-      const token = transaction_token || reference;
-      if (!token) return json({ error: "transaction_token is required for DPO verification" }, 400);
-
-      const apiUrl = Deno.env.get("DPO_API_URL") || "https://secure.3gdirectpay.com/API/v6/";
-      const payload = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>verifyToken</Request>
-  <TransactionToken>${escapeXml(token)}</TransactionToken>
-</API3G>`;
-
-      const verifyRes = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/xml" },
-        body: payload,
-      });
-      const responseText = await verifyRes.text();
-      const result = getXmlValue(responseText, "Result");
-      const resultExplanation = getXmlValue(responseText, "ResultExplanation");
-
-      if (!verifyRes.ok || result !== "000") {
-        return json({ error: resultExplanation || "DPO payment is not complete yet" }, 400);
-      }
-
-      await finalizeOrder(admin, order_id, token, "dpo", user.email || undefined);
-      return json({ success: true, status: "paid", provider: "dpo" });
     }
 
     if (provider === "lemon_squeezy") {

@@ -233,7 +233,6 @@ export default function CheckoutPage() {
       const initializerByProvider: Partial<Record<typeof paymentProvider, string>> = {
         paystack: 'initialize-paystack-checkout',
         lemon_squeezy: 'initialize-lemon-checkout',
-        dpo: 'initialize-dpo-checkout',
         kora: 'initialize-kora-checkout',
       }
       const initializer = initializerByProvider[paymentProvider]
@@ -462,7 +461,7 @@ export default function CheckoutPage() {
                 disabled={checkoutUnavailable}
               >
                 <CreditCard size={18} />
-                {checkoutRoute.canCheckout ? `Pay with ${PAYMENT_PROVIDER_LABELS[paymentProvider]} (${chargeCurrency})` : 'Split checkout required'}
+                {checkoutRoute.canCheckout ? `Pay with ${PAYMENT_PROVIDER_LABELS[paymentProvider]} (${chargeCurrency})` : checkoutRoute.label}
               </Button>
               <div className={styles.currencyNote}>
                 <AlertCircle size={14} />
@@ -477,7 +476,7 @@ export default function CheckoutPage() {
               <p className={styles.secureNote}>
                 {checkoutRoute.canCheckout
                   ? `Secured by ${PAYMENT_PROVIDER_LABELS[paymentProvider]}. Your payment info is never stored by the storefront.`
-                  : 'Remove either the digital or physical products from this cart and checkout the two order types separately.'}
+                  : checkoutRoute.unavailableReason || 'This checkout route is temporarily unavailable.'}
               </p>
             </div>
           </div>
